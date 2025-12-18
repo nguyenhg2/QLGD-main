@@ -12,7 +12,8 @@ namespace QLGD_WinForm
         private Label lblThongTin;
         private ComboBox cboTrangThai;
         private NumericUpDown numChiPhi;
-        private TextBox txtKetQua;
+        private TextBox txtGhiChu;
+        private TextBox txtNguoiXuLy;
         private Button btnLuu;
         private Button btnHuy;
 
@@ -22,7 +23,15 @@ namespace QLGD_WinForm
             InitializeUI();
 
             lblThongTin.Text = $"Sự kiện: {maSuKien}\nThiết bị: {tenTB}";
-            cboTrangThai.SelectedIndex = (trangThaiCu == "Đã xử lý") ? 1 : 0;
+
+            cboTrangThai.SelectedIndex = trangThaiCu switch
+            {
+                "Chờ xử lý" => 0,
+                "Đang sửa chữa" => 0,
+                "Đã xử lý" => 1,
+                _ => 0
+            };
+
             numChiPhi.Value = chiPhiCu;
         }
 
@@ -30,7 +39,7 @@ namespace QLGD_WinForm
         private void InitializeUI()
         {
             this.Text = "CẬP NHẬT TRẠNG THÁI & CHI PHÍ";
-            this.Size = new Size(450, 400);
+            this.Size = new Size(500, 480);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -39,21 +48,34 @@ namespace QLGD_WinForm
             TableLayoutPanel table = new TableLayoutPanel
             {
                 Dock = DockStyle.Top,
-                Height = 250,
+                Height = 320,
                 ColumnCount = 2,
                 Padding = new Padding(20),
-                RowCount = 4
+                RowCount = 5
             };
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 65F));
 
-            lblThongTin = new Label { AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold), ForeColor = Color.Teal };
+            lblThongTin = new Label
+            {
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = Color.Teal
+            };
             table.Controls.Add(lblThongTin, 0, 0);
             table.SetColumnSpan(lblThongTin, 2);
 
-            cboTrangThai = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 30, Font = new Font("Segoe UI", 10) };
+            cboTrangThai = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Height = 30,
+                Font = new Font("Segoe UI", 10)
+            };
             cboTrangThai.Items.AddRange(new object[] { "Đang sửa chữa", "Đã xử lý" });
             AddRow(table, "Trạng Thái:", cboTrangThai);
+
+            txtNguoiXuLy = new TextBox { Height = 30, Font = new Font("Segoe UI", 10) };
+            AddRow(table, "Người Xử Lý:", txtNguoiXuLy);
 
             numChiPhi = new NumericUpDown
             {
@@ -66,17 +88,48 @@ namespace QLGD_WinForm
             };
             AddRow(table, "Chi Phí (VNĐ):", numChiPhi);
 
-            txtKetQua = new TextBox { Multiline = true, Height = 80, Font = new Font("Segoe UI", 10) };
-            Label lblKQ = new Label { Text = "Kết quả / Ghi chú:", AutoSize = true, Font = new Font("Segoe UI", 10) };
+            txtGhiChu = new TextBox
+            {
+                Multiline = true,
+                Height = 80,
+                Font = new Font("Segoe UI", 10),
+                ScrollBars = ScrollBars.Vertical
+            };
+            Label lblKQ = new Label
+            {
+                Text = "Ghi chú:",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10)
+            };
             table.Controls.Add(lblKQ);
-            table.Controls.Add(txtKetQua);
+            table.Controls.Add(txtGhiChu);
 
-            btnLuu = new Button { Text = "CẬP NHẬT", DialogResult = DialogResult.None, BackColor = Color.ForestGreen, ForeColor = Color.White, Height = 40, Width = 100 };
-            btnHuy = new Button { Text = "Hủy", DialogResult = DialogResult.Cancel, Height = 40, Width = 100 };
+            btnLuu = new Button
+            {
+                Text = "CẬP NHẬT",
+                DialogResult = DialogResult.None,
+                BackColor = Color.ForestGreen,
+                ForeColor = Color.White,
+                Height = 40,
+                Width = 110
+            };
+            btnHuy = new Button
+            {
+                Text = "Hủy",
+                DialogResult = DialogResult.Cancel,
+                Height = 40,
+                Width = 100
+            };
 
             btnLuu.Click += BtnLuu_Click;
 
-            FlowLayoutPanel pnlBtn = new FlowLayoutPanel { FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Bottom, Height = 60, Padding = new Padding(10) };
+            FlowLayoutPanel pnlBtn = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.RightToLeft,
+                Dock = DockStyle.Bottom,
+                Height = 70,
+                Padding = new Padding(15)
+            };
             pnlBtn.Controls.Add(btnHuy);
             pnlBtn.Controls.Add(btnLuu);
 
@@ -86,7 +139,13 @@ namespace QLGD_WinForm
 
         private void AddRow(TableLayoutPanel table, string label, Control ctrl)
         {
-            Label lbl = new Label { Text = label, AutoSize = true, Anchor = AnchorStyles.Left, Font = new Font("Segoe UI", 10) };
+            Label lbl = new Label
+            {
+                Text = label,
+                AutoSize = true,
+                Anchor = AnchorStyles.Left,
+                Font = new Font("Segoe UI", 10)
+            };
             ctrl.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             table.Controls.Add(lbl);
             table.Controls.Add(ctrl);
@@ -105,13 +164,18 @@ namespace QLGD_WinForm
                     cmd.CommandType = CommandType.StoredProcedure;
 
                     cmd.Parameters.AddWithValue("@MaSuKien", _maSuKien);
-                    cmd.Parameters.AddWithValue("@TrangThai", cboTrangThai.SelectedItem.ToString());
+
+                    int trangThaiInt = cboTrangThai.SelectedIndex + 1;
+                    cmd.Parameters.AddWithValue("@TrangThai", trangThaiInt);
+
                     cmd.Parameters.AddWithValue("@ChiPhi", numChiPhi.Value);
-                    cmd.Parameters.AddWithValue("@KetQua", txtKetQua.Text.Trim());
+                    cmd.Parameters.AddWithValue("@GhiChu", txtGhiChu.Text.Trim());
+                    cmd.Parameters.AddWithValue("@NguoiXuLy", txtNguoiXuLy.Text.Trim());
 
                     cmd.ExecuteNonQuery();
 
-                    MessageBox.Show("Cập nhật thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Cập nhật thành công!", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                 }

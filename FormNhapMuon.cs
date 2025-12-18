@@ -8,9 +8,10 @@ namespace QLGD_WinForm
 {
     public class FormNhapMuon : Form
     {
-        private TextBox txtMaNguoiMuon, txtHoTen, txtDonVi;
+        private TextBox txtMaNguoiMuon, txtHoTen, txtDonVi, txtSDT;
         private ComboBox cboThietBi, cboGiangDuong, cboPhong;
         private DateTimePicker dtpHanTra;
+        private TextBox txtGhiChu;
         private Button btnLuu, btnHuy;
         private bool _isNewUser = false;
         private Panel pnlThongTinMuon;
@@ -26,7 +27,7 @@ namespace QLGD_WinForm
         private void InitializeUI()
         {
             this.Text = "Đăng Ký Mượn Thiết Bị Mới";
-            this.Size = new Size(650, 650);
+            this.Size = new Size(700, 750);
             this.StartPosition = FormStartPosition.CenterParent;
             this.BackColor = Color.White;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -45,10 +46,10 @@ namespace QLGD_WinForm
             TableLayoutPanel table = new TableLayoutPanel
             {
                 Dock = DockStyle.Top,
-                Height = 350,
+                Height = 450,
                 ColumnCount = 2,
                 Padding = new Padding(20),
-                RowCount = 7
+                RowCount = 9
             };
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 65F));
@@ -63,6 +64,9 @@ namespace QLGD_WinForm
 
             txtDonVi = new TextBox { Height = 30, Font = new Font("Segoe UI", 10), ReadOnly = true, BackColor = Color.WhiteSmoke };
             AddRow(table, "Đơn Vị / Lớp:", txtDonVi);
+
+            txtSDT = new TextBox { Height = 30, Font = new Font("Segoe UI", 10), ReadOnly = true, BackColor = Color.WhiteSmoke };
+            AddRow(table, "Số Điện Thoại:", txtSDT);
 
             cboGiangDuong = CreateComboBox();
             cboGiangDuong.SelectedIndexChanged += CboGiangDuong_SelectedIndexChanged;
@@ -85,7 +89,10 @@ namespace QLGD_WinForm
             };
             AddRow(table, "Hạn Trả Dự Kiến:", dtpHanTra);
 
-            //  THÊM PANEL HIỂN THỊ DANH SÁCH THIẾT BỊ ĐANG MƯỢN
+            txtGhiChu = new TextBox { Multiline = true, Height = 60, ScrollBars = ScrollBars.Vertical };
+            AddRow(table, "Ghi Chú:", txtGhiChu);
+
+            // Panel hiển thị thông tin đang mượn
             pnlThongTinMuon = new Panel
             {
                 Dock = DockStyle.Top,
@@ -104,11 +111,32 @@ namespace QLGD_WinForm
             };
             pnlThongTinMuon.Controls.Add(lblDanhSachDangMuon);
 
-            btnLuu = new Button { Text = "MƯỢN NGAY", DialogResult = DialogResult.None, BackColor = Color.Teal, ForeColor = Color.White, Height = 45, Width = 140, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
-            btnHuy = new Button { Text = "Hủy Bỏ", DialogResult = DialogResult.Cancel, Height = 45, Width = 100 };
+            btnLuu = new Button
+            {
+                Text = "MƯỢN NGAY",
+                DialogResult = DialogResult.None,
+                BackColor = Color.Teal,
+                ForeColor = Color.White,
+                Height = 45,
+                Width = 140,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+            };
+            btnHuy = new Button
+            {
+                Text = "Hủy Bỏ",
+                DialogResult = DialogResult.Cancel,
+                Height = 45,
+                Width = 100
+            };
             btnLuu.Click += BtnLuu_Click;
 
-            FlowLayoutPanel pnlBtn = new FlowLayoutPanel { FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Bottom, Height = 80, Padding = new Padding(20) };
+            FlowLayoutPanel pnlBtn = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.RightToLeft,
+                Dock = DockStyle.Bottom,
+                Height = 80,
+                Padding = new Padding(20)
+            };
             pnlBtn.Controls.Add(btnHuy);
             pnlBtn.Controls.Add(btnLuu);
 
@@ -120,7 +148,13 @@ namespace QLGD_WinForm
 
         private void AddRow(TableLayoutPanel table, string label, Control ctrl)
         {
-            Label lbl = new Label { Text = label, AutoSize = true, Anchor = AnchorStyles.Left, Font = new Font("Segoe UI", 10) };
+            Label lbl = new Label
+            {
+                Text = label,
+                AutoSize = true,
+                Anchor = AnchorStyles.Left,
+                Font = new Font("Segoe UI", 10)
+            };
             ctrl.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             table.Controls.Add(lbl);
             table.Controls.Add(ctrl);
@@ -128,7 +162,12 @@ namespace QLGD_WinForm
 
         private ComboBox CreateComboBox()
         {
-            return new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Height = 32, Font = new Font("Segoe UI", 10) };
+            return new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Height = 32,
+                Font = new Font("Segoe UI", 10)
+            };
         }
         #endregion
 
@@ -153,18 +192,34 @@ namespace QLGD_WinForm
                         {
                             txtHoTen.Text = reader["HoTen"].ToString();
                             txtDonVi.Text = reader["DonVi"].ToString();
-                            txtHoTen.ReadOnly = true; txtDonVi.ReadOnly = true;
-                            txtHoTen.BackColor = Color.WhiteSmoke; txtDonVi.BackColor = Color.WhiteSmoke;
+                            txtSDT.Text = reader["SDT"].ToString();
+
+                            txtHoTen.ReadOnly = true;
+                            txtDonVi.ReadOnly = true;
+                            txtSDT.ReadOnly = true;
+
+                            txtHoTen.BackColor = Color.WhiteSmoke;
+                            txtDonVi.BackColor = Color.WhiteSmoke;
+                            txtSDT.BackColor = Color.WhiteSmoke;
+
                             _isNewUser = false;
 
-                            //  HIỂN THỊ DANH SÁCH THIẾT BỊ ĐANG MƯỢN
                             HienThiDanhSachDangMuon(maNM);
                         }
                         else
                         {
-                            txtHoTen.ReadOnly = false; txtDonVi.ReadOnly = false;
-                            txtHoTen.BackColor = Color.White; txtDonVi.BackColor = Color.White;
-                            txtHoTen.Text = ""; txtDonVi.Text = "";
+                            txtHoTen.ReadOnly = false;
+                            txtDonVi.ReadOnly = false;
+                            txtSDT.ReadOnly = false;
+
+                            txtHoTen.BackColor = Color.White;
+                            txtDonVi.BackColor = Color.White;
+                            txtSDT.BackColor = Color.White;
+
+                            txtHoTen.Text = "";
+                            txtDonVi.Text = "";
+                            txtSDT.Text = "";
+
                             txtHoTen.Focus();
                             _isNewUser = true;
                             pnlThongTinMuon.Visible = false;
@@ -178,7 +233,6 @@ namespace QLGD_WinForm
             }
         }
 
-        //  HIỂN THỊ DANH SÁCH THIẾT BỊ ĐANG MƯỢN
         private void HienThiDanhSachDangMuon(string maNguoiMuon)
         {
             try
@@ -214,10 +268,24 @@ namespace QLGD_WinForm
 
                         lblDanhSachDangMuon.Text = danhSach;
                         pnlThongTinMuon.Visible = true;
+
+                        MessageBox.Show(
+                            $"⚠ CẢNH BÁO: Người này đang mượn {dt.Rows.Count} thiết bị!\n\n" +
+                            "Theo quy định, mỗi người chỉ được mượn 1 thiết bị tại 1 thời điểm.\n" +
+                            "Vui lòng yêu cầu trả thiết bị trước khi mượn mới.",
+                            "Không Thể Mượn",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning
+                        );
+
+                        btnLuu.Enabled = false;
+                        btnLuu.BackColor = Color.Gray;
                     }
                     else
                     {
                         pnlThongTinMuon.Visible = false;
+                        btnLuu.Enabled = true;
+                        btnLuu.BackColor = Color.Teal;
                     }
                 }
             }
@@ -225,6 +293,7 @@ namespace QLGD_WinForm
         }
 
         private void TxtMaNguoiMuon_Leave(object sender, EventArgs e) => CheckNguoiMuon();
+
         private void TxtMaNguoiMuon_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -242,8 +311,10 @@ namespace QLGD_WinForm
                 {
                     conn.Open();
 
+                    var cmd = new SqlCommand("sp_GetAllGiangDuong", conn);
+                    cmd.CommandType = CommandType.StoredProcedure;
                     var dtGD = new DataTable();
-                    new SqlDataAdapter("sp_GetAllGiangDuong", conn).Fill(dtGD);
+                    new SqlDataAdapter(cmd).Fill(dtGD);
 
                     cboGiangDuong.SelectedIndexChanged -= CboGiangDuong_SelectedIndexChanged;
                     cboGiangDuong.DisplayMember = "MaGD";
@@ -258,7 +329,10 @@ namespace QLGD_WinForm
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+            }
         }
 
         private void CboGiangDuong_SelectedIndexChanged(object sender, EventArgs e)
@@ -280,14 +354,11 @@ namespace QLGD_WinForm
                     var dt = new DataTable();
                     new SqlDataAdapter(cmd).Fill(dt);
 
-                    DataView dv = new DataView(dt);
-                    dv.RowFilter = "MaPhong <> '000'";
-
-                    cboPhong.DataSource = dv;
+                    cboPhong.DataSource = dt;
                     cboPhong.DisplayMember = "MaPhong";
                     cboPhong.ValueMember = "MaPhong";
 
-                    LoadThietBiTheoGiangDuong(maGD);
+                    LoadThietBiSanSang();
                 }
             }
             catch (Exception ex)
@@ -296,7 +367,7 @@ namespace QLGD_WinForm
             }
         }
 
-        private void LoadThietBiTheoGiangDuong(string maGD)
+        private void LoadThietBiSanSang()
         {
             try
             {
@@ -304,27 +375,19 @@ namespace QLGD_WinForm
                 {
                     conn.Open();
 
-                    string sql = @"
-                        SELECT MaTB, TenTB + ' (' + MaTB + ')' as DisplayName 
-                        FROM THIET_BI 
-                        WHERE TrangThai = N'Tốt' 
-                          AND MaGD = @MaGD 
-                          AND MaPhong = '000'
-                        ORDER BY TenTB";
-
-                    var cmd = new SqlCommand(sql, conn);
-                    cmd.Parameters.AddWithValue("@MaGD", maGD);
+                    var cmd = new SqlCommand("sp_GetThietBiSanSang", conn);
+                    cmd.CommandType = CommandType.StoredProcedure;
 
                     var dtTB = new DataTable();
                     new SqlDataAdapter(cmd).Fill(dtTB);
 
                     cboThietBi.DataSource = dtTB;
-                    cboThietBi.DisplayMember = "DisplayName";
+                    cboThietBi.DisplayMember = "TenTB";
                     cboThietBi.ValueMember = "MaTB";
 
                     if (dtTB.Rows.Count == 0)
                     {
-                        MessageBox.Show($"Không có thiết bị nào sẵn sàng trong kho giảng đường {maGD}!",
+                        MessageBox.Show("Không có thiết bị nào sẵn sàng trong kho!",
                             "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
@@ -337,6 +400,7 @@ namespace QLGD_WinForm
 
         private void BtnLuu_Click(object sender, EventArgs e)
         {
+            // Validation
             if (string.IsNullOrWhiteSpace(txtMaNguoiMuon.Text) || string.IsNullOrWhiteSpace(txtHoTen.Text))
             {
                 MessageBox.Show("Vui lòng nhập Mã và Tên người mượn!");
@@ -356,18 +420,22 @@ namespace QLGD_WinForm
 
                 try
                 {
+                    // Nếu là người mượn mới
                     if (_isNewUser)
                     {
-                        string sqlInsertUser = "INSERT INTO NGUOI_MUON (MaNguoiMuon, HoTen, DonVi, TrangThai) VALUES (@Ma, @Ten, @DV, N'Còn công tác')";
+                        string sqlInsertUser = @"
+                            INSERT INTO NGUOI_MUON (MaNguoiMuon, HoTen, DonVi, SDT, TrangThai) 
+                            VALUES (@Ma, @Ten, @DV, @SDT, 0)";
+
                         var cmdUser = new SqlCommand(sqlInsertUser, conn, transaction);
                         cmdUser.Parameters.AddWithValue("@Ma", txtMaNguoiMuon.Text.Trim());
                         cmdUser.Parameters.AddWithValue("@Ten", txtHoTen.Text.Trim());
                         cmdUser.Parameters.AddWithValue("@DV", txtDonVi.Text.Trim());
+                        cmdUser.Parameters.AddWithValue("@SDT", txtSDT.Text.Trim());
                         cmdUser.ExecuteNonQuery();
                     }
 
-                    new SqlCommand("ALTER TABLE MUON_TRA NOCHECK CONSTRAINT ALL", conn, transaction).ExecuteNonQuery();
-
+                    // Tạo phiếu mượn
                     var cmd = new SqlCommand("sp_MuonThietBi", conn, transaction);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@MaDK", "PM" + DateTime.Now.ToString("yyyyMMddHHmmss"));
@@ -381,34 +449,27 @@ namespace QLGD_WinForm
                     else
                         cmd.Parameters.AddWithValue("@TGTraDuKien", DBNull.Value);
 
+                    cmd.Parameters.AddWithValue("@GhiChu", txtGhiChu.Text.Trim());
+
                     cmd.ExecuteNonQuery();
 
-                    new SqlCommand("ALTER TABLE MUON_TRA WITH CHECK CHECK CONSTRAINT ALL", conn, transaction).ExecuteNonQuery();
-
                     transaction.Commit();
-                    MessageBox.Show("✅ Mượn thiết bị thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("✅ Mượn thiết bị thành công!", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                 }
                 catch (SqlException ex)
                 {
                     transaction.Rollback();
-                    try
-                    {
-                        using (var cn2 = new SqlConnection(AppConfig.ConnectionString))
-                        {
-                            cn2.Open();
-                            new SqlCommand("ALTER TABLE MUON_TRA WITH CHECK CHECK CONSTRAINT ALL", cn2).ExecuteNonQuery();
-                        }
-                    }
-                    catch { }
-
-                    MessageBox.Show(ex.Message, "Không thể mượn", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(ex.Message, "Không thể mượn",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Lỗi: " + ex.Message, "Lỗi",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

@@ -118,33 +118,46 @@ namespace QLGD_WinForm
                 dgvList.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
                 dgvList.ColumnHeadersHeight = 40;
 
+                if (dgvList.Columns.Contains("MaPhieu"))
+                    dgvList.Columns["MaPhieu"].HeaderText = "Mã Phiếu";
+
+                if (dgvList.Columns.Contains("NguoiMuon"))
+                    dgvList.Columns["NguoiMuon"].HeaderText = "Người Mượn";
+
+                if (dgvList.Columns.Contains("DonVi"))
+                    dgvList.Columns["DonVi"].HeaderText = "Đơn Vị";
+
+                if (dgvList.Columns.Contains("SDT"))
+                    dgvList.Columns["SDT"].HeaderText = "Số Điện Thoại";
+
+                if (dgvList.Columns.Contains("TenThietBi"))
+                    dgvList.Columns["TenThietBi"].HeaderText = "Tên Thiết Bị";
+
                 string dateFmt = "dd/MM/yyyy HH:mm";
-                if (dgvList.Columns.Contains("Ngày Mượn"))
-                    dgvList.Columns["Ngày Mượn"].DefaultCellStyle.Format = dateFmt;
-
-                if (dgvList.Columns.Contains("Hạn Trả"))
-                    dgvList.Columns["Hạn Trả"].DefaultCellStyle.Format = dateFmt;
-
-                if (dgvList.Columns.Contains("Số Giờ Quá Hạn"))
+                if (dgvList.Columns.Contains("NgayMuon"))
                 {
-                    var col = dgvList.Columns["Số Giờ Quá Hạn"];
+                    dgvList.Columns["NgayMuon"].HeaderText = "Ngày Mượn";
+                    dgvList.Columns["NgayMuon"].DefaultCellStyle.Format = dateFmt;
+                }
+
+                if (dgvList.Columns.Contains("HanTra"))
+                {
+                    dgvList.Columns["HanTra"].HeaderText = "Hạn Trả";
+                    dgvList.Columns["HanTra"].DefaultCellStyle.Format = dateFmt;
+                }
+
+                if (dgvList.Columns.Contains("SoGioQuaHan"))
+                {
+                    var col = dgvList.Columns["SoGioQuaHan"];
+                    col.HeaderText = "Quá Hạn (Giờ)";
                     col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                     col.DefaultCellStyle.Font = new Font("Segoe UI", 11, FontStyle.Bold);
                     col.DefaultCellStyle.ForeColor = Color.Red;
-                    col.HeaderText = "Quá Hạn (Giờ)";
                 }
-                else if (dgvList.Columns.Contains("Số Ngày Quá Hạn"))
-                {
-                    var col = dgvList.Columns["Số Ngày Quá Hạn"];
-                    col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                    col.DefaultCellStyle.ForeColor = Color.Red;
-                }
-
-                if (dgvList.Columns.Contains("Mã Phiếu"))
-                    dgvList.Columns["Mã Phiếu"].Width = 100;
             }
             catch { }
         }
+
         #endregion
     }
 }

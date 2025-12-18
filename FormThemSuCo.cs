@@ -36,7 +36,6 @@ namespace QLGD_WinForm
             this.MaximizeBox = false;
             this.MinimizeBox = false;
 
-            // Header
             Panel pnlHeader = new Panel
             {
                 Dock = DockStyle.Top,
@@ -53,7 +52,6 @@ namespace QLGD_WinForm
             };
             pnlHeader.Controls.Add(lblHeader);
 
-            // Body
             Panel pnlBody = new Panel
             {
                 Dock = DockStyle.Fill,
@@ -65,7 +63,6 @@ namespace QLGD_WinForm
             int labelWidth = 150;
             int controlWidth = 450;
 
-            // Mã thiết bị + Nút Load
             AddLabel(pnlBody, "Chọn Thiết Bị (*):", y);
             txtMaTB = new TextBox
             {
@@ -91,7 +88,6 @@ namespace QLGD_WinForm
             pnlBody.Controls.Add(btnLoadTB);
             y += 35;
 
-            // ComboBox thiết bị
             cboThietBi = new ComboBox
             {
                 Location = new Point(labelWidth, y),
@@ -104,7 +100,6 @@ namespace QLGD_WinForm
             pnlBody.Controls.Add(cboThietBi);
             y += 40;
 
-            // Label cảnh báo
             lblCanhBao = new Label
             {
                 Location = new Point(labelWidth, y),
@@ -119,7 +114,6 @@ namespace QLGD_WinForm
             pnlBody.Controls.Add(lblCanhBao);
             y += 55;
 
-            // Thông tin thiết bị
             lblThongTinTB = new Label
             {
                 Location = new Point(labelWidth, y),
@@ -134,7 +128,6 @@ namespace QLGD_WinForm
             pnlBody.Controls.Add(lblThongTinTB);
             y += 45;
 
-            // Loại sự kiện
             AddLabel(pnlBody, "Loại Sự Kiện:", y);
             cboLoaiSuKien = new ComboBox
             {
@@ -148,7 +141,6 @@ namespace QLGD_WinForm
             pnlBody.Controls.Add(cboLoaiSuKien);
             y += 40;
 
-            // Thời gian
             AddLabel(pnlBody, "Thời Gian:", y);
             dtpNgay = new DateTimePicker
             {
@@ -161,7 +153,6 @@ namespace QLGD_WinForm
             pnlBody.Controls.Add(dtpNgay);
             y += 40;
 
-            // Người báo/xử lý
             AddLabel(pnlBody, "Người Báo/Xử Lý:", y);
             txtNguoiBao = new TextBox
             {
@@ -172,7 +163,6 @@ namespace QLGD_WinForm
             pnlBody.Controls.Add(txtNguoiBao);
             y += 40;
 
-            // Mô tả chi tiết
             AddLabel(pnlBody, "Mô Tả Chi Tiết:", y);
             txtMoTa = new TextBox
             {
@@ -185,7 +175,6 @@ namespace QLGD_WinForm
             };
             pnlBody.Controls.Add(txtMoTa);
 
-            // Footer buttons
             Panel pnlFooter = new Panel
             {
                 Dock = DockStyle.Bottom,
@@ -265,7 +254,7 @@ namespace QLGD_WinForm
                         WHERE (MaTB LIKE @tuKhoa OR TenTB LIKE @tuKhoa)
                           AND MaTB NOT IN (
                               SELECT MaTB FROM SU_CO_BAO_TRI 
-                              WHERE TrangThai IN (N'Chờ xử lý', N'Đang sửa chữa')
+                              WHERE TrangThai IN (0, 1)
                           )
                         ORDER BY TenTB";
 
@@ -312,7 +301,7 @@ namespace QLGD_WinForm
                         FROM THIET_BI 
                         WHERE MaTB NOT IN (
                             SELECT MaTB FROM SU_CO_BAO_TRI 
-                            WHERE TrangThai IN (N'Chờ xử lý', N'Đang sửa chữa')
+                            WHERE TrangThai IN (0, 1)
                         )
                         ORDER BY TenTB";
 
@@ -351,12 +340,11 @@ namespace QLGD_WinForm
                 {
                     conn.Open();
 
-                    // Kiểm tra sự cố cũ
                     string sqlCheck = @"
                         SELECT TOP 1 MaSuKien, NgayPhatSinh, TrangThai
                         FROM SU_CO_BAO_TRI
                         WHERE MaTB = @MaTB 
-                          AND TrangThai IN (N'Chờ xử lý', N'Đang sửa chữa')
+                          AND TrangThai IN (0, 1)
                         ORDER BY NgayPhatSinh DESC";
 
                     var cmdCheck = new SqlCommand(sqlCheck, conn);
@@ -368,10 +356,12 @@ namespace QLGD_WinForm
                         {
                             string maSK = reader["MaSuKien"].ToString();
                             DateTime ngay = Convert.ToDateTime(reader["NgayPhatSinh"]);
-                            string trangThai = reader["TrangThai"].ToString();
+                            int trangThai = Convert.ToInt32(reader["TrangThai"]);
 
-                            lblCanhBao.Text = $"⚠ CẢNH BÁO: Thiết bị đã có sự cố chưa xử lý!\n" +
-                                            $"Mã SK: {maSK} | Ngày: {ngay:dd/MM/yyyy HH:mm} | {trangThai}";
+                            string tenTrangThai = trangThai == 0 ? "Chờ xử lý" : "Đang sửa chữa";
+
+                            lblCanhBao.Text = $"CẢNH BÁO: Thiết bị đã có sự cố chưa xử lý!\n" +
+                                            $"Mã SK: {maSK} | Ngày: {ngay:dd/MM/yyyy HH:mm} | {tenTrangThai}";
                             lblCanhBao.Visible = true;
                             lblThongTinTB.Visible = false;
                             btnLuu.Enabled = false;
@@ -380,7 +370,6 @@ namespace QLGD_WinForm
                         }
                     }
 
-                    // Load thông tin thiết bị
                     string sqlInfo = @"
                         SELECT tb.TenTB, tb.TrangThai, ltb.TenLoai, tb.MaGD, tb.MaPhong
                         FROM THIET_BI tb
@@ -394,8 +383,11 @@ namespace QLGD_WinForm
                     {
                         if (reader.Read())
                         {
-                            lblThongTinTB.Text = $"📋 {reader["TenLoai"]} | " +
-                                               $"Trạng thái: {reader["TrangThai"]} | " +
+                            int trangThai = Convert.ToInt32(reader["TrangThai"]);
+                            string tenTrangThai = TrangThaiHelper.GetTenTrangThai(trangThai, typeof(TrangThaiThietBi));
+
+                            lblThongTinTB.Text = $"{reader["TenLoai"]} | " +
+                                               $"Trạng thái: {tenTrangThai} | " +
                                                $"Vị trí: {reader["MaGD"]}-{reader["MaPhong"]}";
                             lblThongTinTB.Visible = true;
                         }
@@ -434,13 +426,13 @@ namespace QLGD_WinForm
                     cmd.CommandType = CommandType.StoredProcedure;
 
                     cmd.Parameters.AddWithValue("@MaTB", cboThietBi.SelectedValue);
-                    cmd.Parameters.AddWithValue("@LoaiSuKien", cboLoaiSuKien.SelectedItem.ToString());
+                    cmd.Parameters.AddWithValue("@LoaiSuKien", cboLoaiSuKien.SelectedIndex);
                     cmd.Parameters.AddWithValue("@MoTa", txtMoTa.Text.Trim());
                     cmd.Parameters.AddWithValue("@NguoiXuLy", txtNguoiBao.Text.Trim());
                     cmd.Parameters.AddWithValue("@NgayPhatSinh", dtpNgay.Value);
 
                     cmd.ExecuteNonQuery();
-                    MessageBox.Show("✅ Đã ghi nhận sự cố thành công!", "Thành công",
+                    MessageBox.Show("Đã ghi nhận sự cố thành công!", "Thành công",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.DialogResult = DialogResult.OK;
                     this.Close();

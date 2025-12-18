@@ -27,11 +27,12 @@ namespace QLGD_WinForm
         private void InitializeCustomToolbar()
         {
             pnlTop.Controls.Clear();
+            pnlTop.Height = 70;
 
             rdoDangMuon = new RadioButton
             {
                 Text = "Đang Mượn",
-                Location = new Point(20, 20),
+                Location = new Point(20, 10),
                 Checked = true,
                 AutoSize = true,
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
@@ -41,7 +42,7 @@ namespace QLGD_WinForm
             rdoLichSu = new RadioButton
             {
                 Text = "Lịch Sử (Tất cả)",
-                Location = new Point(150, 20),
+                Location = new Point(150, 10),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 10)
             };
@@ -49,14 +50,14 @@ namespace QLGD_WinForm
             Label lblTim = new Label
             {
                 Text = "Tìm kiếm:",
-                Location = new Point(310, 22),
+                Location = new Point(20, 40),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9)
             };
 
             txtTimKiem = new TextBox
             {
-                Location = new Point(380, 18),
+                Location = new Point(90, 37),
                 Width = 250,
                 Font = new Font("Segoe UI", 10),
                 PlaceholderText = "Mã phiếu, Tên người, Tên TB..."
@@ -65,8 +66,8 @@ namespace QLGD_WinForm
             btnTimKiem = new Button
             {
                 Text = "Tìm",
-                Location = new Point(640, 15),
-                Size = new Size(80, 35),
+                Location = new Point(350, 35),
+                Size = new Size(80, 28),
                 BackColor = Color.SteelBlue,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat
@@ -75,16 +76,16 @@ namespace QLGD_WinForm
             btnLamMoi = new Button
             {
                 Text = "Làm Mới",
-                Location = new Point(730, 15),
-                Size = new Size(90, 35),
+                Location = new Point(440, 35),
+                Size = new Size(100, 28),
                 BackColor = Color.White
             };
 
             btnMuonMoi = new Button
             {
                 Text = "Mượn Mới",
-                Location = new Point(840, 15),
-                Size = new Size(120, 35),
+                Location = new Point(560, 35),
+                Size = new Size(120, 28),
                 BackColor = Color.ForestGreen,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -94,8 +95,8 @@ namespace QLGD_WinForm
             btnTraDo = new Button
             {
                 Text = "Trả Thiết Bị",
-                Location = new Point(970, 15),
-                Size = new Size(120, 35),
+                Location = new Point(690, 35),
+                Size = new Size(120, 28),
                 BackColor = Color.DarkOrange,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -105,8 +106,8 @@ namespace QLGD_WinForm
             Button btnCanhBao = new Button
             {
                 Text = "DS Quá Hạn",
-                Location = new Point(1100, 15),
-                Size = new Size(110, 35),
+                Location = new Point(820, 35),
+                Size = new Size(120, 28),
                 BackColor = Color.Firebrick,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -164,146 +165,90 @@ namespace QLGD_WinForm
                     var cmd = new SqlCommand("sp_GetChiTietGiaoDich", conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@CheDo", mode);
+                    cmd.Parameters.AddWithValue("@TuKhoa", search);
 
                     var dt = new DataTable();
                     new SqlDataAdapter(cmd).Fill(dt);
 
-                    // Áp dụng bộ lọc tìm kiếm
-                    DataTable filteredTable = dt.Clone(); // Tạo bảng mới có cùng cấu trúc
+                    this.Text = $"Quản Lý Mượn Trả - {dt.Rows.Count} kết quả";
 
-                    if (!string.IsNullOrEmpty(search))
+                    if (dt.Rows.Count == 0)
                     {
-                        string searchLower = search.ToLower();
-
-                        foreach (DataRow row in dt.Rows)
-                        {
-                            bool match = false;
-
-                            // Tìm kiếm trong các cột quan trọng
-                            if (row["Mã Phiếu"] != DBNull.Value &&
-                                row["Mã Phiếu"].ToString().ToLower().Contains(searchLower))
-                                match = true;
-
-                            if (row["Người Mượn"] != DBNull.Value &&
-                                row["Người Mượn"].ToString().ToLower().Contains(searchLower))
-                                match = true;
-
-                            if (row["Đơn Vị/Lớp"] != DBNull.Value &&
-                                row["Đơn Vị/Lớp"].ToString().ToLower().Contains(searchLower))
-                                match = true;
-
-                            if (row["Tên Thiết Bị"] != DBNull.Value &&
-                                row["Tên Thiết Bị"].ToString().ToLower().Contains(searchLower))
-                                match = true;
-
-                            if (row["Mã TB"] != DBNull.Value &&
-                                row["Mã TB"].ToString().ToLower().Contains(searchLower))
-                                match = true;
-
-                            if (row["Vị Trí Hiện Tại"] != DBNull.Value &&
-                                row["Vị Trí Hiện Tại"].ToString().ToLower().Contains(searchLower))
-                                match = true;
-
-                            if (row["Trạng Thái"] != DBNull.Value &&
-                                row["Trạng Thái"].ToString().ToLower().Contains(searchLower))
-                                match = true;
-
-                            if (match)
-                            {
-                                filteredTable.ImportRow(row);
-                            }
-                        }
-
-                        dgvMain.DataSource = filteredTable;
-                        this.Text = $"Quản Lý Mượn Trả - {filteredTable.Rows.Count} kết quả";
+                        MessageBox.Show("Không có dữ liệu!\n\nVui lòng chạy script sinh dữ liệu!",
+                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
-                    else
-                    {
-                        dgvMain.DataSource = dt;
-                        this.Text = $"Quản Lý Mượn Trả - {dt.Rows.Count} kết quả";
-                    }
+
+                    dgvMain.AutoGenerateColumns = true;
+                    dgvMain.DataSource = dt;
 
                     btnTraDo.Enabled = rdoDangMuon.Checked;
-                    ConfigureGridColumns();
+
+                    if (dt.Rows.Count > 0)
+                    {
+                        ApplyFormatting();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message, "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"LỖI TẢI DỮ LIỆU:\n\n{ex.Message}\n\n{ex.StackTrace}",
+                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-
-        private void ConfigureGridColumns()
+        private void ApplyFormatting()
         {
             try
             {
-                if (dgvMain.Columns.Count == 0) return;
-
-                dgvMain.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-                dgvMain.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
-                dgvMain.ColumnHeadersHeight = 50;
-                dgvMain.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                dgvMain.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-
-                void SetCol(string dbCol, string headerText, int width)
-                {
-                    if (dgvMain.Columns.Contains(dbCol))
-                    {
-                        dgvMain.Columns[dbCol].HeaderText = headerText;
-                        dgvMain.Columns[dbCol].Width = width;
-                    }
-                }
-
-                SetCol("Mã Phiếu", "Mã Phiếu", 100);
-                SetCol("Người Mượn", "Họ Tên Người Mượn", 180);
-                SetCol("Đơn Vị/Lớp", "Đơn Vị / Lớp", 180);
-                SetCol("Tên Thiết Bị", "Tên Thiết Bị", 240);
-                SetCol("Mã TB", "Mã Thiết Bị", 100);
-                SetCol("Vị Trí Hiện Tại", "Vị Trí Hiện Tại", 100);
-                SetCol("Thời Gian Mượn", "Thời Gian Mượn", 140);
-                SetCol("Hạn Trả", "Thời Gian Trả Dự Kiến", 150);
-                SetCol("Thời Gian Trả", "Thời Gian Trả Thực Tế", 150);
-                SetCol("Trạng Thái", "Trạng Thái Phiếu", 130);
-
                 string dateFormat = "dd/MM/yyyy HH:mm";
-                if (dgvMain.Columns.Contains("Thời Gian Mượn"))
-                    dgvMain.Columns["Thời Gian Mượn"].DefaultCellStyle.Format = dateFormat;
-                if (dgvMain.Columns.Contains("Hạn Trả"))
-                    dgvMain.Columns["Hạn Trả"].DefaultCellStyle.Format = dateFormat;
-                if (dgvMain.Columns.Contains("Thời Gian Trả"))
-                    dgvMain.Columns["Thời Gian Trả"].DefaultCellStyle.Format = dateFormat;
+                if (dgvMain.Columns.Contains("ThoiGianMuon"))
+                    dgvMain.Columns["ThoiGianMuon"].DefaultCellStyle.Format = dateFormat;
+                if (dgvMain.Columns.Contains("HanTra"))
+                    dgvMain.Columns["HanTra"].DefaultCellStyle.Format = dateFormat;
+                if (dgvMain.Columns.Contains("ThoiGianTra"))
+                    dgvMain.Columns["ThoiGianTra"].DefaultCellStyle.Format = dateFormat;
 
-                if (dgvMain.Columns.Contains("Trạng Thái"))
+                if (dgvMain.Columns.Contains("SoGioQuaHan"))
+                    dgvMain.Columns["SoGioQuaHan"].Visible = false;
+
+                if (dgvMain.Columns.Contains("TrangThai"))
                 {
                     foreach (DataGridViewRow row in dgvMain.Rows)
                     {
                         if (row.IsNewRow) continue;
-
-                        var cellValue = row.Cells["Trạng Thái"].Value;
+                        var cellValue = row.Cells["TrangThai"].Value;
                         if (cellValue == null) continue;
 
                         string status = cellValue.ToString();
-
                         if (status == "QUÁ HẠN")
                         {
-                            row.Cells["Trạng Thái"].Style.ForeColor = Color.Red;
-                            row.Cells["Trạng Thái"].Style.Font = new Font(dgvMain.Font, FontStyle.Bold);
-                            row.Cells["Trạng Thái"].Style.BackColor = Color.MistyRose;
+                            row.Cells["TrangThai"].Style.ForeColor = Color.Red;
+                            row.Cells["TrangThai"].Style.Font = new Font(dgvMain.Font, FontStyle.Bold);
+                            row.Cells["TrangThai"].Style.BackColor = Color.MistyRose;
                         }
                         else if (status == "Đã hoàn thành")
                         {
-                            row.Cells["Trạng Thái"].Style.ForeColor = Color.Green;
+                            row.Cells["TrangThai"].Style.ForeColor = Color.Green;
                         }
                         else if (status == "Đang mượn")
                         {
-                            row.Cells["Trạng Thái"].Style.ForeColor = Color.DarkBlue;
+                            row.Cells["TrangThai"].Style.ForeColor = Color.DarkBlue;
                         }
                     }
                 }
+
+                dgvMain.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                if (dgvMain.Columns.Contains("MaPhieu"))
+                    dgvMain.Columns["MaPhieu"].Width = 150;
+                if (dgvMain.Columns.Contains("NguoiMuon"))
+                    dgvMain.Columns["NguoiMuon"].Width = 180;
+                if (dgvMain.Columns.Contains("TenThietBi"))
+                    dgvMain.Columns["TenThietBi"].Width = 250;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi format: {ex.Message}");
+            }
         }
         #endregion
 
@@ -312,47 +257,79 @@ namespace QLGD_WinForm
         {
             if (e.RowIndex < 0) return;
 
-            if (dgvMain.Columns.Contains("Mã Phiếu") && dgvMain.Rows[e.RowIndex].Cells["Mã Phiếu"].Value != null)
+            if (dgvMain.Columns.Contains("MaPhieu") &&
+                dgvMain.Rows[e.RowIndex].Cells["MaPhieu"].Value != null)
             {
-                string maDK = dgvMain.Rows[e.RowIndex].Cells["Mã Phiếu"].Value.ToString();
+                string maDK = dgvMain.Rows[e.RowIndex].Cells["MaPhieu"].Value.ToString();
                 new FormChiTietMuonTra(maDK).ShowDialog();
             }
         }
 
         private void BtnTraDo_Click(object sender, EventArgs e)
         {
-            if (dgvMain.CurrentRow == null) return;
-            if (!dgvMain.Columns.Contains("Mã Phiếu") || !dgvMain.Columns.Contains("Tên Thiết Bị")) return;
-
-            string maDK = dgvMain.CurrentRow.Cells["Mã Phiếu"].Value?.ToString();
-            string tenTB = dgvMain.CurrentRow.Cells["Tên Thiết Bị"].Value?.ToString();
-
-            if (maDK == null) return;
-
-            if (MessageBox.Show($"Xác nhận trả thiết bị:\n\n{tenTB}\n\nMã phiếu: {maDK}",
-                "Trả Thiết Bị", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (dgvMain.CurrentRow == null)
             {
-                try
-                {
-                    using (var conn = new SqlConnection(AppConfig.ConnectionString))
-                    {
-                        conn.Open();
-                        var cmd = new SqlCommand("sp_TraThietBi", conn);
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@MaDK", maDK);
-                        cmd.Parameters.AddWithValue("@TrangThaiThietBi", "Tốt");
-                        cmd.ExecuteNonQuery();
+                MessageBox.Show("Vui lòng chọn phiếu mượn cần trả!", "Thông báo",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-                        MessageBox.Show("Trả thiết bị thành công!", "Thành công",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        LoadData(txtTimKiem.Text.Trim());
-                    }
-                }
-                catch (Exception ex)
+            if (!dgvMain.Columns.Contains("MaPhieu") || !dgvMain.Columns.Contains("TenThietBi"))
+            {
+                MessageBox.Show("Lỗi: Không tìm thấy cột dữ liệu!", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string maDK = dgvMain.CurrentRow.Cells["MaPhieu"].Value?.ToString();
+            string tenTB = dgvMain.CurrentRow.Cells["TenThietBi"].Value?.ToString();
+
+            if (string.IsNullOrEmpty(maDK))
+            {
+                MessageBox.Show("Mã phiếu không hợp lệ!", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"XÁC NHẬN TRẢ THIẾT BỊ\n\n" +
+                $"Thiết bị: {tenTB}\n" +
+                $"Mã phiếu: {maDK}\n\n" +
+                $"Trạng thái thiết bị khi trả?\n\n" +
+                $"• YES = Tốt (0)\n" +
+                $"• NO = Hỏng (2)\n" +
+                $"• CANCEL = Hủy",
+                "Trả Thiết Bị",
+                MessageBoxButtons.YesNoCancel,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Cancel) return;
+
+            int trangThaiTB = (result == DialogResult.Yes) ? 0 : 2;
+
+            try
+            {
+                using (var conn = new SqlConnection(AppConfig.ConnectionString))
                 {
-                    MessageBox.Show("Lỗi: " + ex.Message, "Lỗi",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    conn.Open();
+                    var cmd = new SqlCommand("sp_TraThietBi", conn);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@MaDK", maDK);
+                    cmd.Parameters.AddWithValue("@TrangThaiThietBi", trangThaiTB);
+                    cmd.Parameters.AddWithValue("@GhiChu", DBNull.Value);
+
+                    cmd.ExecuteNonQuery();
+
+                    MessageBox.Show("Trả thiết bị thành công!", "Thành công",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadData(txtTimKiem.Text.Trim());
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi trả thiết bị:\n{ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         #endregion

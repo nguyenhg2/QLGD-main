@@ -27,12 +27,15 @@ namespace QLGD_WinForm
             this.Text = _maTB == null ? "Thêm Thiết Bị Mới" : "Cập Nhật Thiết Bị";
             this.Size = new Size(500, 450);
             this.StartPosition = FormStartPosition.CenterParent;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
 
             int y = 20;
             void AddControl(string label, Control ctrl)
             {
                 Controls.Add(new Label { Text = label, Location = new Point(30, y), AutoSize = true });
-                ctrl.Location = new Point(150, y - 3); ctrl.Width = 250;
+                ctrl.Location = new Point(150, y - 3);
+                ctrl.Width = 250;
                 Controls.Add(ctrl);
                 y += 50;
             }
@@ -53,11 +56,23 @@ namespace QLGD_WinForm
             txtGiaTri = new TextBox();
             AddControl("Giá Trị (VNĐ):", txtGiaTri);
 
-            btnLuu = new Button { Text = "Lưu", Location = new Point(150, y), Size = new Size(100, 35), BackColor = Color.Teal, ForeColor = Color.White };
-            btnHuy = new Button { Text = "Hủy", Location = new Point(270, y), Size = new Size(100, 35) };
+            btnLuu = new Button
+            {
+                Text = "Lưu",
+                Location = new Point(150, y),
+                Size = new Size(100, 35),
+                BackColor = Color.Teal,
+                ForeColor = Color.White
+            };
+            btnHuy = new Button
+            {
+                Text = "Hủy",
+                Location = new Point(270, y),
+                Size = new Size(100, 35),
+                DialogResult = DialogResult.Cancel
+            };
 
             btnLuu.Click += BtnLuu_Click;
-            btnHuy.Click += (s, e) => this.Close();
 
             Controls.AddRange(new Control[] { btnLuu, btnHuy });
         }
@@ -71,11 +86,18 @@ namespace QLGD_WinForm
                 conn.Open();
 
                 var daLoai = new SqlDataAdapter("SELECT MaLoai, TenLoai FROM LOAI_THIET_BI", conn);
-                var dtLoai = new DataTable(); daLoai.Fill(dtLoai);
-                cboLoai.DataSource = dtLoai; cboLoai.DisplayMember = "TenLoai"; cboLoai.ValueMember = "MaLoai";
+                var dtLoai = new DataTable();
+                daLoai.Fill(dtLoai);
+                cboLoai.DataSource = dtLoai;
+                cboLoai.DisplayMember = "TenLoai";
+                cboLoai.ValueMember = "MaLoai";
 
-                var daPhong = new SqlDataAdapter("SELECT MaGD, MaPhong, (MaGD + ' - ' + MaPhong) as TenHienThi FROM GIANG_DUONG", conn);
-                var dtPhong = new DataTable(); daPhong.Fill(dtPhong);
+                var daPhong = new SqlDataAdapter(
+                    "SELECT MaGD, MaPhong, (MaGD + ' - ' + MaPhong) as TenHienThi FROM GIANG_DUONG",
+                    conn
+                );
+                var dtPhong = new DataTable();
+                daPhong.Fill(dtPhong);
                 cboPhong.DataSource = dtPhong;
                 cboPhong.DisplayMember = "TenHienThi";
             }
@@ -88,6 +110,7 @@ namespace QLGD_WinForm
                 conn.Open();
                 var cmd = new SqlCommand("SELECT * FROM THIET_BI WHERE MaTB = @id", conn);
                 cmd.Parameters.AddWithValue("@id", _maTB);
+
                 using (var dr = cmd.ExecuteReader())
                 {
                     if (dr.Read())
@@ -99,9 +122,11 @@ namespace QLGD_WinForm
 
                         string maGD = dr["MaGD"].ToString();
                         string maPhong = dr["MaPhong"].ToString();
+
                         foreach (DataRowView item in cboPhong.Items)
                         {
-                            if (item["MaGD"].ToString() == maGD && item["MaPhong"].ToString() == maPhong)
+                            if (item["MaGD"].ToString() == maGD &&
+                                item["MaPhong"].ToString() == maPhong)
                             {
                                 cboPhong.SelectedItem = item;
                                 break;
@@ -114,9 +139,16 @@ namespace QLGD_WinForm
 
         private void BtnLuu_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtMaTB.Text) || string.IsNullOrWhiteSpace(txtTenTB.Text))
+            if (string.IsNullOrWhiteSpace(txtMaTB.Text) ||
+                string.IsNullOrWhiteSpace(txtTenTB.Text))
             {
                 MessageBox.Show("Vui lòng nhập Mã và Tên thiết bị!");
+                return;
+            }
+
+            if (cboLoai.SelectedValue == null || cboPhong.SelectedItem == null)
+            {
+                MessageBox.Show("Vui lòng chọn Loại thiết bị và Vị trí!");
                 return;
             }
 
@@ -126,20 +158,24 @@ namespace QLGD_WinForm
                 {
                     conn.Open();
                     string sql;
+
                     if (_maTB == null)
                     {
-                        sql = @"INSERT INTO THIET_BI (MaTB, TenTB, MaLoai, MaGD, MaPhong, GiaTri, TrangThai) 
-                                VALUES (@MaTB, @TenTB, @MaLoai, @MaGD, @MaPhong, @GiaTri, N'Tốt')";
+                        sql = @"INSERT INTO THIET_BI 
+                                (MaTB, TenTB, MaLoai, MaGD, MaPhong, GiaTri, TrangThai) 
+                                VALUES (@MaTB, @TenTB, @MaLoai, @MaGD, @MaPhong, @GiaTri, 0)";
                     }
                     else
                     {
-                        sql = @"UPDATE THIET_BI SET TenTB=@TenTB, MaLoai=@MaLoai, MaGD=@MaGD, MaPhong=@MaPhong, GiaTri=@GiaTri 
+                        sql = @"UPDATE THIET_BI 
+                                SET TenTB=@TenTB, MaLoai=@MaLoai, MaGD=@MaGD, 
+                                    MaPhong=@MaPhong, GiaTri=@GiaTri 
                                 WHERE MaTB=@MaTB";
                     }
 
                     var cmd = new SqlCommand(sql, conn);
-                    cmd.Parameters.AddWithValue("@MaTB", txtMaTB.Text);
-                    cmd.Parameters.AddWithValue("@TenTB", txtTenTB.Text);
+                    cmd.Parameters.AddWithValue("@MaTB", txtMaTB.Text.Trim());
+                    cmd.Parameters.AddWithValue("@TenTB", txtTenTB.Text.Trim());
                     cmd.Parameters.AddWithValue("@MaLoai", cboLoai.SelectedValue);
 
                     DataRowView drv = (DataRowView)cboPhong.SelectedItem;
@@ -151,13 +187,18 @@ namespace QLGD_WinForm
                     cmd.Parameters.AddWithValue("@GiaTri", giaTri);
 
                     cmd.ExecuteNonQuery();
-                    MessageBox.Show("Lưu thành công!");
+
+                    MessageBox.Show("Lưu thành công!", "Thành công",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    this.DialogResult = DialogResult.OK;
                     this.Close();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         #endregion
