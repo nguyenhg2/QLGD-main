@@ -94,8 +94,8 @@ namespace QLGD_WinForm
             });
 
             cboGiangDuong.SelectedIndexChanged += (s, e) => LoadData();
-            cboTrangThai.SelectedIndexChanged += (s, e) => LoadData();
-            txtTimKiemTB.TextChanged += (s, e) => LoadData();
+            cboTrangThai.SelectedIndexChanged += (s, e) => FilterData();
+            txtTimKiemTB.TextChanged += (s, e) => FilterData();
 
             btnAdd.Click += (s, e) => {
                 if (new FormNhapThietBi().ShowDialog() == DialogResult.OK)
@@ -107,6 +107,8 @@ namespace QLGD_WinForm
         #endregion
 
         #region Data Loading
+        private DataTable _dtFull; // Lưu dữ liệu gốc để filter
+
         private void LoadComboboxGD()
         {
             try
@@ -118,10 +120,6 @@ namespace QLGD_WinForm
                     cmd.CommandType = CommandType.StoredProcedure;
                     var dt = new DataTable();
                     new SqlDataAdapter(cmd).Fill(dt);
-
-                    DataRow allRow = dt.NewRow();
-                    allRow["MaGD"] = "ALL";
-                    dt.Rows.InsertAt(allRow, 0);
 
                     cboGiangDuong.DisplayMember = "MaGD";
                     cboGiangDuong.ValueMember = "MaGD";
@@ -140,10 +138,10 @@ namespace QLGD_WinForm
 
         protected override void LoadData(string search = "")
         {
-            if (cboGiangDuong.SelectedValue == null) return;
+            if (cboGiangDuong?.SelectedValue == null) return;
 
             string maGD = cboGiangDuong.SelectedValue.ToString();
-            string tuKhoa = txtTimKiemTB.Text.Trim();
+            if (string.IsNullOrEmpty(maGD) || maGD.Contains("DataRowView")) return;
 
             try
             {
@@ -152,130 +150,116 @@ namespace QLGD_WinForm
                     conn.Open();
                     var cmd = new SqlCommand("sp_GetThietBiByGD", conn);
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@MaGD", maGD);
 
-                    if (maGD == "ALL")
-                        cmd.Parameters.AddWithValue("@MaGD", DBNull.Value);
-                    else
-                        cmd.Parameters.AddWithValue("@MaGD", maGD);
+                    _dtFull = new DataTable();
+                    new SqlDataAdapter(cmd).Fill(_dtFull);
 
-                    int trangThaiIndex = cboTrangThai.SelectedIndex;
-                    if (trangThaiIndex > 0)
-                        cmd.Parameters.AddWithValue("@TrangThai", trangThaiIndex - 1);
-                    else
-                        cmd.Parameters.AddWithValue("@TrangThai", DBNull.Value);
-
-                    var dt = new DataTable();
-                    new SqlDataAdapter(cmd).Fill(dt);
-
-                    this.Text = $"Quản Lý Thiết Bị - {dt.Rows.Count} bản ghi";
-
-                    if (dt.Rows.Count == 0)
-                    {
-                        MessageBox.Show("Không tìm thấy dữ liệu!\nVui lòng chạy script sinh dữ liệu mẫu.",
-                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-
-                    if (!string.IsNullOrEmpty(tuKhoa))
-                    {
-                        dt.DefaultView.RowFilter = $"TenThietBi LIKE '%{tuKhoa}%' OR MaTB LIKE '%{tuKhoa}%'";
-                    }
-
-                    dgvMain.AutoGenerateColumns = false;
-                    dgvMain.Columns.Clear();
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "MaTB",
-                        HeaderText = "Mã TB",
-                        DataPropertyName = "MaTB",
-                        Width = 100
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "TenThietBi",
-                        HeaderText = "Tên Thiết Bị",
-                        DataPropertyName = "TenThietBi",
-                        Width = 300
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "LoaiThietBi",
-                        HeaderText = "Loại TB",
-                        DataPropertyName = "LoaiThietBi",
-                        Width = 150
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "NhaSX",
-                        HeaderText = "Nhà SX",
-                        DataPropertyName = "NhaSX",
-                        Width = 120
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "Model",
-                        HeaderText = "Model",
-                        DataPropertyName = "Model",
-                        Width = 100
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "NamSX",
-                        HeaderText = "Năm SX",
-                        DataPropertyName = "NamSX",
-                        Width = 80
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "GiaTri",
-                        HeaderText = "Giá Trị (VNĐ)",
-                        DataPropertyName = "GiaTri",
-                        Width = 120,
-                        DefaultCellStyle = new DataGridViewCellStyle
-                        {
-                            Format = "N0",
-                            Alignment = DataGridViewContentAlignment.MiddleRight
-                        }
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "TrangThai",
-                        HeaderText = "Trạng Thái",
-                        DataPropertyName = "TrangThai",
-                        Width = 130
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "ViTri",
-                        HeaderText = "Vị Trí",
-                        DataPropertyName = "ViTri",
-                        Width = 120
-                    });
-
-                    dgvMain.Columns.Add(new DataGridViewTextBoxColumn
-                    {
-                        Name = "NgayCapPhat",
-                        HeaderText = "Ngày Cấp Phát",
-                        DataPropertyName = "NgayCapPhat",
-                        Width = 120,
-                        DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" }
-                    });
-
-                    dgvMain.DataSource = dt;
+                    ConfigureColumns();
+                    FilterData();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi tải dữ liệu:\n{ex.Message}\n\nStack:{ex.StackTrace}",
+                MessageBox.Show($"Lỗi tải dữ liệu:\n{ex.Message}",
                     "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void FilterData()
+        {
+            if (_dtFull == null) return;
+
+            string tuKhoa = txtTimKiemTB?.Text?.Trim() ?? "";
+            int trangThaiIndex = cboTrangThai?.SelectedIndex ?? 0;
+
+            string filter = "";
+
+            // Filter theo từ khóa
+            if (!string.IsNullOrEmpty(tuKhoa))
+            {
+                filter = $"(TenTB LIKE '%{tuKhoa}%' OR MaTB LIKE '%{tuKhoa}%' OR TenLoai LIKE '%{tuKhoa}%')";
+            }
+
+            // Filter theo trạng thái
+            if (trangThaiIndex > 0)
+            {
+                int trangThai = trangThaiIndex - 1;
+                if (!string.IsNullOrEmpty(filter))
+                    filter += " AND ";
+                filter += $"TrangThai = {trangThai}";
+            }
+
+            try
+            {
+                _dtFull.DefaultView.RowFilter = filter;
+                dgvMain.DataSource = _dtFull;
+                this.Text = $"Quản Lý Thiết Bị - {_dtFull.DefaultView.Count} bản ghi";
+            }
+            catch
+            {
+                dgvMain.DataSource = _dtFull;
+            }
+        }
+
+        private void ConfigureColumns()
+        {
+            dgvMain.AutoGenerateColumns = false;
+            dgvMain.Columns.Clear();
+
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "MaTB",
+                HeaderText = "Mã TB",
+                DataPropertyName = "MaTB",
+                Width = 200
+            });
+
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "TenTB",
+                HeaderText = "Tên Thiết Bị",
+                DataPropertyName = "TenTB",
+                Width = 400
+            });
+
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "TenLoai",
+                HeaderText = "Loại TB",
+                DataPropertyName = "TenLoai",
+                Width = 220
+            });
+
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "TrangThai",
+                HeaderText = "Trạng Thái",
+                DataPropertyName = "TrangThai",
+                Width = 200
+            });
+
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "MaPhong",
+                HeaderText = "Phòng",
+                DataPropertyName = "MaPhong",
+                Width = 150
+            });
+
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "ViTri",
+                HeaderText = "Vị Trí",
+                DataPropertyName = "ViTri",
+                Width = 150
+            });
+
+            // Style header
+            foreach (DataGridViewColumn col in dgvMain.Columns)
+            {
+                col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                col.HeaderCell.Style.Font = new Font("Segoe UI", 10, FontStyle.Bold);
             }
         }
 
@@ -317,10 +301,7 @@ namespace QLGD_WinForm
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Lỗi CellFormatting: {ex.Message}");
-            }
+            catch { }
         }
         #endregion
 
@@ -351,7 +332,7 @@ namespace QLGD_WinForm
             }
 
             string maTB = dgvMain.CurrentRow.Cells["MaTB"].Value?.ToString();
-            string tenTB = dgvMain.CurrentRow.Cells["TenThietBi"].Value?.ToString();
+            string tenTB = dgvMain.CurrentRow.Cells["TenTB"].Value?.ToString();
 
             if (string.IsNullOrEmpty(maTB)) return;
 
@@ -386,11 +367,6 @@ namespace QLGD_WinForm
                 catch (SqlException ex)
                 {
                     MessageBox.Show($"Không thể xóa thiết bị:\n\n{ex.Message}",
-                        "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi xóa:\n{ex.Message}",
                         "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }

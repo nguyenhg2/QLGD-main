@@ -402,20 +402,20 @@ namespace QLGD_WinForm
                 return;
             }
 
-            using (var conn = new SqlConnection(AppConfig.ConnectionString))
+            try
             {
-                conn.Open();
-                SqlTransaction transaction = conn.BeginTransaction();
-
-                try
+                using (var conn = new SqlConnection(AppConfig.ConnectionString))
                 {
+                    conn.Open();
+
                     if (_isNewUser)
                     {
                         string sqlInsertUser = @"
-                            INSERT INTO NGUOI_MUON (MaNguoiMuon, HoTen, DonVi, SDT, TrangThai) 
-                            VALUES (@Ma, @Ten, @DV, @SDT, 0)";
+                    IF NOT EXISTS (SELECT 1 FROM NGUOI_MUON WHERE MaNguoiMuon = @Ma)
+                    INSERT INTO NGUOI_MUON (MaNguoiMuon, HoTen, DonVi, SDT, TrangThai) 
+                    VALUES (@Ma, @Ten, @DV, @SDT, 0)";
 
-                        var cmdUser = new SqlCommand(sqlInsertUser, conn, transaction);
+                        var cmdUser = new SqlCommand(sqlInsertUser, conn);
                         cmdUser.Parameters.AddWithValue("@Ma", txtMaNguoiMuon.Text.Trim());
                         cmdUser.Parameters.AddWithValue("@Ten", txtHoTen.Text.Trim());
                         cmdUser.Parameters.AddWithValue("@DV", txtDonVi.Text.Trim());
@@ -423,7 +423,8 @@ namespace QLGD_WinForm
                         cmdUser.ExecuteNonQuery();
                     }
 
-                    var cmd = new SqlCommand("sp_MuonThietBi", conn, transaction);
+                    // Gọi SP mượn thiết bị (không bọc trong transaction)
+                    var cmd = new SqlCommand("sp_MuonThietBi", conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@MaDK", "PM" + DateTime.Now.ToString("yyyyMMddHHmmss"));
                     cmd.Parameters.AddWithValue("@MaNguoiMuon", txtMaNguoiMuon.Text.Trim());
@@ -440,24 +441,21 @@ namespace QLGD_WinForm
 
                     cmd.ExecuteNonQuery();
 
-                    transaction.Commit();
-                    MessageBox.Show("✅ Mượn thiết bị thành công!", "Thành công",
+                    MessageBox.Show(" Mượn thiết bị thành công!", "Thành công",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                 }
-                catch (SqlException ex)
-                {
-                    transaction.Rollback();
-                    MessageBox.Show(ex.Message, "Không thể mượn",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    MessageBox.Show("Lỗi: " + ex.Message, "Lỗi",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(ex.Message, "Không thể mượn",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         #endregion

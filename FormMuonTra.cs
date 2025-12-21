@@ -50,23 +50,23 @@ namespace QLGD_WinForm
             Label lblTim = new Label
             {
                 Text = "Tìm kiếm:",
-                Location = new Point(20, 40),
+                Location = new Point(20, 42),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9)
             };
 
             txtTimKiem = new TextBox
             {
-                Location = new Point(90, 37),
-                Width = 250,
+                Location = new Point(90, 39),
+                Width = 300,
                 Font = new Font("Segoe UI", 10),
-                PlaceholderText = "Mã phiếu, Tên người, Tên TB..."
+                PlaceholderText = "Mã phiếu, tên người, SĐT, tên TB, loại TB, phòng..."
             };
 
             btnTimKiem = new Button
             {
                 Text = "Tìm",
-                Location = new Point(350, 35),
+                Location = new Point(400, 37),
                 Size = new Size(80, 28),
                 BackColor = Color.SteelBlue,
                 ForeColor = Color.White,
@@ -76,16 +76,16 @@ namespace QLGD_WinForm
             btnLamMoi = new Button
             {
                 Text = "Làm Mới",
-                Location = new Point(440, 35),
-                Size = new Size(100, 28),
+                Location = new Point(490, 37),
+                Size = new Size(90, 28),
                 BackColor = Color.White
             };
 
             btnMuonMoi = new Button
             {
                 Text = "Mượn Mới",
-                Location = new Point(560, 35),
-                Size = new Size(120, 28),
+                Location = new Point(600, 37),
+                Size = new Size(110, 28),
                 BackColor = Color.ForestGreen,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -95,8 +95,8 @@ namespace QLGD_WinForm
             btnTraDo = new Button
             {
                 Text = "Trả Thiết Bị",
-                Location = new Point(690, 35),
-                Size = new Size(120, 28),
+                Location = new Point(720, 37),
+                Size = new Size(110, 28),
                 BackColor = Color.DarkOrange,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -106,8 +106,8 @@ namespace QLGD_WinForm
             Button btnCanhBao = new Button
             {
                 Text = "DS Quá Hạn",
-                Location = new Point(820, 35),
-                Size = new Size(120, 28),
+                Location = new Point(840, 37),
+                Size = new Size(110, 28),
                 BackColor = Color.Firebrick,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -115,7 +115,8 @@ namespace QLGD_WinForm
             };
 
             pnlTop.Controls.AddRange(new Control[] {
-                rdoDangMuon, rdoLichSu, lblTim, txtTimKiem, btnTimKiem, btnLamMoi,
+                rdoDangMuon, rdoLichSu,
+                lblTim, txtTimKiem, btnTimKiem, btnLamMoi,
                 btnMuonMoi, btnTraDo, btnCanhBao
             });
 
@@ -144,7 +145,7 @@ namespace QLGD_WinForm
 
             btnMuonMoi.Click += (s, e) => {
                 if (new FormNhapMuon().ShowDialog() == DialogResult.OK)
-                    LoadData(txtTimKiem.Text.Trim());
+                    LoadData();
             };
 
             btnTraDo.Click += BtnTraDo_Click;
@@ -172,82 +173,85 @@ namespace QLGD_WinForm
 
                     this.Text = $"Quản Lý Mượn Trả - {dt.Rows.Count} kết quả";
 
-                    if (dt.Rows.Count == 0)
-                    {
-                        MessageBox.Show("Không có dữ liệu!\n\nVui lòng chạy script sinh dữ liệu!",
-                            "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-
-                    dgvMain.AutoGenerateColumns = true;
+                    ConfigureColumns();
                     dgvMain.DataSource = dt;
 
                     btnTraDo.Enabled = rdoDangMuon.Checked;
 
                     if (dt.Rows.Count > 0)
-                    {
-                        ApplyFormatting();
-                    }
+                        ApplyRowFormatting();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"LỖI TẢI DỮ LIỆU:\n\n{ex.Message}\n\n{ex.StackTrace}",
+                MessageBox.Show($"LỖI TẢI DỮ LIỆU:\n\n{ex.Message}",
                     "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void ApplyFormatting()
+        private void ConfigureColumns()
         {
-            try
+            dgvMain.AutoGenerateColumns = false;
+            dgvMain.Columns.Clear();
+
+            var headerStyle = new DataGridViewCellStyle
             {
-                string dateFormat = "dd/MM/yyyy HH:mm";
-                if (dgvMain.Columns.Contains("ThoiGianMuon"))
-                    dgvMain.Columns["ThoiGianMuon"].DefaultCellStyle.Format = dateFormat;
-                if (dgvMain.Columns.Contains("HanTra"))
-                    dgvMain.Columns["HanTra"].DefaultCellStyle.Format = dateFormat;
-                if (dgvMain.Columns.Contains("ThoiGianTra"))
-                    dgvMain.Columns["ThoiGianTra"].DefaultCellStyle.Format = dateFormat;
+                Alignment = DataGridViewContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                BackColor = Color.SteelBlue,
+                ForeColor = Color.White
+            };
 
-                if (dgvMain.Columns.Contains("SoGioQuaHan"))
-                    dgvMain.Columns["SoGioQuaHan"].Visible = false;
+            var centerStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter };
+            var leftStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleLeft, Padding = new Padding(5, 0, 0, 0) };
+            var dateTimeStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter, Format = "dd/MM/yyyy HH:mm" };
 
-                if (dgvMain.Columns.Contains("TrangThai"))
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "MaPhieu", DataPropertyName = "MaPhieu", HeaderText = "Mã Phiếu", Width = 100, DefaultCellStyle = centerStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "NguoiMuon", DataPropertyName = "NguoiMuon", HeaderText = "Người Mượn", Width = 150, DefaultCellStyle = leftStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "DonVi", DataPropertyName = "DonVi", HeaderText = "Đơn Vị/Lớp", Width = 110, DefaultCellStyle = leftStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "SDT", DataPropertyName = "SDT", HeaderText = "SĐT", Width = 100, DefaultCellStyle = centerStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "MaTB", DataPropertyName = "MaTB", HeaderText = "Mã TB", Width = 80, DefaultCellStyle = centerStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "TenThietBi", DataPropertyName = "TenThietBi", HeaderText = "Tên Thiết Bị", Width = 170, DefaultCellStyle = leftStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "LoaiThietBi", DataPropertyName = "LoaiThietBi", HeaderText = "Loại TB", Width = 100, DefaultCellStyle = leftStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "ViTriHienTai", DataPropertyName = "ViTriHienTai", HeaderText = "Vị Trí", Width = 80, DefaultCellStyle = centerStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "ThoiGianMuon", DataPropertyName = "ThoiGianMuon", HeaderText = "Thời Gian Mượn", Width = 130, DefaultCellStyle = dateTimeStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "HanTra", DataPropertyName = "HanTra", HeaderText = "Hạn Trả", Width = 130, DefaultCellStyle = dateTimeStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "ThoiGianTra", DataPropertyName = "ThoiGianTra", HeaderText = "Thời Gian Trả", Width = 130, DefaultCellStyle = dateTimeStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "TrangThai", DataPropertyName = "TrangThai", HeaderText = "Trạng Thái", Width = 110, DefaultCellStyle = centerStyle });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "SoGioQuaHan", DataPropertyName = "SoGioQuaHan", Visible = false });
+            dgvMain.Columns.Add(new DataGridViewTextBoxColumn { Name = "GhiChu", DataPropertyName = "GhiChu", HeaderText = "Ghi Chú", Width = 140, DefaultCellStyle = leftStyle });
+
+            dgvMain.EnableHeadersVisualStyles = false;
+            dgvMain.ColumnHeadersDefaultCellStyle = headerStyle;
+            dgvMain.ColumnHeadersHeight = 40;
+        }
+
+        private void ApplyRowFormatting()
+        {
+            foreach (DataGridViewRow row in dgvMain.Rows)
+            {
+                if (row.IsNewRow) continue;
+
+                var cellValue = row.Cells["TrangThai"].Value;
+                if (cellValue == null) continue;
+
+                string status = cellValue.ToString();
+
+                if (status == "QUÁ HẠN")
                 {
-                    foreach (DataGridViewRow row in dgvMain.Rows)
-                    {
-                        if (row.IsNewRow) continue;
-                        var cellValue = row.Cells["TrangThai"].Value;
-                        if (cellValue == null) continue;
-
-                        string status = cellValue.ToString();
-                        if (status == "QUÁ HẠN")
-                        {
-                            row.Cells["TrangThai"].Style.ForeColor = Color.Red;
-                            row.Cells["TrangThai"].Style.Font = new Font(dgvMain.Font, FontStyle.Bold);
-                            row.Cells["TrangThai"].Style.BackColor = Color.MistyRose;
-                        }
-                        else if (status == "Đã hoàn thành")
-                        {
-                            row.Cells["TrangThai"].Style.ForeColor = Color.Green;
-                        }
-                        else if (status == "Đang mượn")
-                        {
-                            row.Cells["TrangThai"].Style.ForeColor = Color.DarkBlue;
-                        }
-                    }
+                    row.Cells["TrangThai"].Style.ForeColor = Color.Red;
+                    row.Cells["TrangThai"].Style.Font = new Font(dgvMain.Font, FontStyle.Bold);
+                    row.Cells["TrangThai"].Style.BackColor = Color.MistyRose;
+                    row.DefaultCellStyle.BackColor = Color.LavenderBlush;
                 }
-
-                dgvMain.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-                if (dgvMain.Columns.Contains("MaPhieu"))
-                    dgvMain.Columns["MaPhieu"].Width = 150;
-                if (dgvMain.Columns.Contains("NguoiMuon"))
-                    dgvMain.Columns["NguoiMuon"].Width = 180;
-                if (dgvMain.Columns.Contains("TenThietBi"))
-                    dgvMain.Columns["TenThietBi"].Width = 250;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Lỗi format: {ex.Message}");
+                else if (status == "Đã hoàn thành")
+                {
+                    row.Cells["TrangThai"].Style.ForeColor = Color.Green;
+                }
+                else if (status == "Đang mượn")
+                {
+                    row.Cells["TrangThai"].Style.ForeColor = Color.DarkBlue;
+                }
             }
         }
         #endregion
@@ -257,10 +261,10 @@ namespace QLGD_WinForm
         {
             if (e.RowIndex < 0) return;
 
-            if (dgvMain.Columns.Contains("MaPhieu") &&
-                dgvMain.Rows[e.RowIndex].Cells["MaPhieu"].Value != null)
+            var cell = dgvMain.Rows[e.RowIndex].Cells["MaPhieu"];
+            if (cell?.Value != null)
             {
-                string maDK = dgvMain.Rows[e.RowIndex].Cells["MaPhieu"].Value.ToString();
+                string maDK = cell.Value.ToString();
                 new FormChiTietMuonTra(maDK).ShowDialog();
             }
         }
@@ -274,15 +278,10 @@ namespace QLGD_WinForm
                 return;
             }
 
-            if (!dgvMain.Columns.Contains("MaPhieu") || !dgvMain.Columns.Contains("TenThietBi"))
-            {
-                MessageBox.Show("Lỗi: Không tìm thấy cột dữ liệu!", "Lỗi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            string maDK = dgvMain.CurrentRow.Cells["MaPhieu"].Value?.ToString();
-            string tenTB = dgvMain.CurrentRow.Cells["TenThietBi"].Value?.ToString();
+            var rowCells = dgvMain.CurrentRow.Cells;
+            string maDK = rowCells["MaPhieu"].Value?.ToString();
+            string tenTB = rowCells["TenThietBi"].Value?.ToString();
+            string nguoiMuon = rowCells["NguoiMuon"].Value?.ToString();
 
             if (string.IsNullOrEmpty(maDK))
             {
@@ -293,11 +292,12 @@ namespace QLGD_WinForm
 
             var result = MessageBox.Show(
                 $"XÁC NHẬN TRẢ THIẾT BỊ\n\n" +
+                $"Người mượn: {nguoiMuon}\n" +
                 $"Thiết bị: {tenTB}\n" +
                 $"Mã phiếu: {maDK}\n\n" +
                 $"Trạng thái thiết bị khi trả?\n\n" +
-                $"• YES = Tốt (0)\n" +
-                $"• NO = Hỏng (2)\n" +
+                $"• YES = Tốt\n" +
+                $"• NO = Hỏng\n" +
                 $"• CANCEL = Hủy",
                 "Trả Thiết Bị",
                 MessageBoxButtons.YesNoCancel,
