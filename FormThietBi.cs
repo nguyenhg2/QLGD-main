@@ -6,93 +6,22 @@ using System.Windows.Forms;
 
 namespace QLGD_WinForm
 {
-    public class FormThietBi : BaseManagementForm
+    public partial class FormThietBi : BaseManagementForm
     {
-        private ComboBox cboGiangDuong;
-        private TextBox txtTimKiemTB;
-        private ComboBox cboTrangThai;
+        private DataTable _dtFull;
 
-        public FormThietBi() : base("Quản Lý Thiết Bị Theo Giảng Đường", "ThietBi", new Size(1400, 750))
+        public FormThietBi()
         {
-            InitializeCustomToolbar();
+            InitializeComponent();
+            SetupEvents();
             LoadComboboxGD();
             dgvMain.CellFormatting += DgvMain_CellFormatting;
             LoadData();
         }
 
-        #region UI Setup
-        private void InitializeCustomToolbar()
+        #region Events Setup
+        private void SetupEvents()
         {
-            pnlTop.Controls.Clear();
-
-            Label lblChon = new Label
-            {
-                Text = "Giảng Đường:",
-                Location = new Point(20, 23),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold)
-            };
-
-            cboGiangDuong = new ComboBox
-            {
-                Location = new Point(120, 20),
-                Width = 120,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Segoe UI", 10)
-            };
-
-            Label lblTrangThai = new Label
-            {
-                Text = "Trạng thái:",
-                Location = new Point(260, 23),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 10)
-            };
-
-            cboTrangThai = new ComboBox
-            {
-                Location = new Point(350, 20),
-                Width = 140,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Segoe UI", 10)
-            };
-            cboTrangThai.Items.Add("Tất cả");
-            cboTrangThai.Items.Add("Tốt");
-            cboTrangThai.Items.Add("Đang sử dụng");
-            cboTrangThai.Items.Add("Hỏng");
-            cboTrangThai.Items.Add("Đang sửa chữa");
-            cboTrangThai.Items.Add("Chờ thanh lý");
-            cboTrangThai.SelectedIndex = 0;
-
-            Label lblTim = new Label
-            {
-                Text = "Tìm TB:",
-                Location = new Point(520, 23),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 10)
-            };
-
-            txtTimKiemTB = new TextBox
-            {
-                Location = new Point(590, 20),
-                Width = 200,
-                Font = new Font("Segoe UI", 10),
-                PlaceholderText = "Tên hoặc mã TB..."
-            };
-
-            Button btnAdd = new Button { Text = "Thêm TB", BackColor = Color.Teal, ForeColor = Color.White };
-            Button btnEdit = new Button { Text = "Sửa" };
-            Button btnDel = new Button { Text = "Xóa", BackColor = Color.IndianRed, ForeColor = Color.White };
-
-            btnAdd.Location = new Point(820, 18); btnAdd.Size = new Size(110, 32);
-            btnEdit.Location = new Point(940, 18); btnEdit.Size = new Size(90, 32);
-            btnDel.Location = new Point(1040, 18); btnDel.Size = new Size(90, 32);
-
-            pnlTop.Controls.AddRange(new Control[] {
-                lblChon, cboGiangDuong, lblTrangThai, cboTrangThai,
-                lblTim, txtTimKiemTB, btnAdd, btnEdit, btnDel
-            });
-
             cboGiangDuong.SelectedIndexChanged += (s, e) => LoadData();
             cboTrangThai.SelectedIndexChanged += (s, e) => FilterData();
             txtTimKiemTB.TextChanged += (s, e) => FilterData();
@@ -107,8 +36,6 @@ namespace QLGD_WinForm
         #endregion
 
         #region Data Loading
-        private DataTable _dtFull; // Lưu dữ liệu gốc để filter
-
         private void LoadComboboxGD()
         {
             try
@@ -127,6 +54,8 @@ namespace QLGD_WinForm
 
                     if (cboGiangDuong.Items.Count > 0)
                         cboGiangDuong.SelectedIndex = 0;
+
+                    cboTrangThai.SelectedIndex = 0;
                 }
             }
             catch (Exception ex)
@@ -175,13 +104,11 @@ namespace QLGD_WinForm
 
             string filter = "";
 
-            // Filter theo từ khóa
             if (!string.IsNullOrEmpty(tuKhoa))
             {
                 filter = $"(TenTB LIKE '%{tuKhoa}%' OR MaTB LIKE '%{tuKhoa}%' OR TenLoai LIKE '%{tuKhoa}%')";
             }
 
-            // Filter theo trạng thái
             if (trangThaiIndex > 0)
             {
                 int trangThai = trangThaiIndex - 1;
@@ -214,7 +141,6 @@ namespace QLGD_WinForm
                 DataPropertyName = "MaTB",
                 Width = 200
             });
-
             dgvMain.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "TenTB",
@@ -222,7 +148,6 @@ namespace QLGD_WinForm
                 DataPropertyName = "TenTB",
                 Width = 400
             });
-
             dgvMain.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "TenLoai",
@@ -230,7 +155,6 @@ namespace QLGD_WinForm
                 DataPropertyName = "TenLoai",
                 Width = 220
             });
-
             dgvMain.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "TrangThai",
@@ -238,7 +162,6 @@ namespace QLGD_WinForm
                 DataPropertyName = "TrangThai",
                 Width = 200
             });
-
             dgvMain.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "MaPhong",
@@ -246,7 +169,6 @@ namespace QLGD_WinForm
                 DataPropertyName = "MaPhong",
                 Width = 150
             });
-
             dgvMain.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "ViTri",
@@ -255,7 +177,6 @@ namespace QLGD_WinForm
                 Width = 150
             });
 
-            // Style header
             foreach (DataGridViewColumn col in dgvMain.Columns)
             {
                 col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -337,10 +258,7 @@ namespace QLGD_WinForm
             if (string.IsNullOrEmpty(maTB)) return;
 
             var result = MessageBox.Show(
-                $"Bạn có chắc muốn xóa thiết bị?\n\n" +
-                $"Mã: {maTB}\n" +
-                $"Tên: {tenTB}\n\n" +
-                $"Lưu ý: Không thể xóa nếu thiết bị đang được mượn hoặc có sự cố chưa xử lý!",
+                $"Bạn có chắc muốn xóa thiết bị?\n\nMã: {maTB}\nTên: {tenTB}",
                 "Xác nhận xóa",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning
@@ -356,7 +274,6 @@ namespace QLGD_WinForm
                         var cmd = new SqlCommand("sp_XoaThietBi", conn);
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MaTB", maTB);
-
                         cmd.ExecuteNonQuery();
 
                         MessageBox.Show("Đã xóa thiết bị thành công!", "Thành công",

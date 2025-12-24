@@ -6,167 +6,25 @@ using System.Windows.Forms;
 
 namespace QLGD_WinForm
 {
-    public class FormNhapMuon : Form
+    public partial class FormNhapMuon : Form
     {
-        private TextBox txtMaNguoiMuon, txtHoTen, txtDonVi, txtSDT;
-        private ComboBox cboThietBi, cboGiangDuong, cboPhong;
-        private DateTimePicker dtpHanTra;
-        private TextBox txtGhiChu;
-        private Button btnLuu, btnHuy;
         private bool _isNewUser = false;
-        private Panel pnlThongTinMuon;
-        private Label lblDanhSachDangMuon;
 
         public FormNhapMuon()
         {
-            InitializeUI();
+            InitializeComponent();
+            SetupEvents();
             LoadComboboxGD();
+            dtpHanTra.Value = DateTime.Now.AddHours(4);
         }
 
-        #region UI Setup
-        private void InitializeUI()
+        #region Events Setup
+        private void SetupEvents()
         {
-            this.Text = "Đăng Ký Mượn Thiết Bị Mới";
-            this.Size = new Size(700, 750);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.BackColor = Color.White;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-
-            Label lblHeader = new Label
-            {
-                Text = "PHIẾU MƯỢN THIẾT BỊ",
-                Dock = DockStyle.Top,
-                Height = 60,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                ForeColor = Color.Teal
-            };
-
-            TableLayoutPanel table = new TableLayoutPanel
-            {
-                Dock = DockStyle.Top,
-                Height = 450,
-                ColumnCount = 2,
-                Padding = new Padding(20),
-                RowCount = 9
-            };
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35F));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 65F));
-
-            txtMaNguoiMuon = new TextBox { Height = 30, Font = new Font("Segoe UI", 10), PlaceholderText = "Nhập mã & Enter..." };
             txtMaNguoiMuon.KeyDown += TxtMaNguoiMuon_KeyDown;
             txtMaNguoiMuon.Leave += TxtMaNguoiMuon_Leave;
-            AddRow(table, "Mã Người Mượn (*):", txtMaNguoiMuon);
-
-            txtHoTen = new TextBox { Height = 30, Font = new Font("Segoe UI", 10), ReadOnly = true, BackColor = Color.WhiteSmoke };
-            AddRow(table, "Họ Tên:", txtHoTen);
-
-            txtDonVi = new TextBox { Height = 30, Font = new Font("Segoe UI", 10), ReadOnly = true, BackColor = Color.WhiteSmoke };
-            AddRow(table, "Đơn Vị / Lớp:", txtDonVi);
-
-            txtSDT = new TextBox { Height = 30, Font = new Font("Segoe UI", 10), ReadOnly = true, BackColor = Color.WhiteSmoke };
-            AddRow(table, "Số Điện Thoại:", txtSDT);
-
-            cboGiangDuong = CreateComboBox();
             cboGiangDuong.SelectedIndexChanged += CboGiangDuong_SelectedIndexChanged;
-            AddRow(table, "Tại Giảng Đường (*):", cboGiangDuong);
-
-            cboPhong = CreateComboBox();
-            AddRow(table, "Tại Phòng (*):", cboPhong);
-
-            cboThietBi = CreateComboBox();
-            cboThietBi.AutoCompleteSource = AutoCompleteSource.ListItems;
-            cboThietBi.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            AddRow(table, "Thiết Bị (Kho) (*):", cboThietBi);
-
-            dtpHanTra = new DateTimePicker
-            {
-                Format = DateTimePickerFormat.Custom,
-                CustomFormat = "dd/MM/yyyy HH:mm",
-                Width = 250,
-                Value = DateTime.Now.AddHours(4)
-            };
-            AddRow(table, "Hạn Trả Dự Kiến:", dtpHanTra);
-
-            txtGhiChu = new TextBox { Multiline = true, Height = 60, ScrollBars = ScrollBars.Vertical };
-            AddRow(table, "Ghi Chú:", txtGhiChu);
-
-            pnlThongTinMuon = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 120,
-                Padding = new Padding(20, 5, 20, 5),
-                BackColor = Color.LightYellow,
-                Visible = false
-            };
-
-            lblDanhSachDangMuon = new Label
-            {
-                Dock = DockStyle.Fill,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.DarkOrange,
-                AutoSize = false
-            };
-            pnlThongTinMuon.Controls.Add(lblDanhSachDangMuon);
-
-            btnLuu = new Button
-            {
-                Text = "MƯỢN NGAY",
-                DialogResult = DialogResult.None,
-                BackColor = Color.Teal,
-                ForeColor = Color.White,
-                Height = 45,
-                Width = 140,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold)
-            };
-            btnHuy = new Button
-            {
-                Text = "Hủy Bỏ",
-                DialogResult = DialogResult.Cancel,
-                Height = 45,
-                Width = 100
-            };
             btnLuu.Click += BtnLuu_Click;
-
-            FlowLayoutPanel pnlBtn = new FlowLayoutPanel
-            {
-                FlowDirection = FlowDirection.RightToLeft,
-                Dock = DockStyle.Bottom,
-                Height = 80,
-                Padding = new Padding(20)
-            };
-            pnlBtn.Controls.Add(btnHuy);
-            pnlBtn.Controls.Add(btnLuu);
-
-            this.Controls.Add(pnlBtn);
-            this.Controls.Add(pnlThongTinMuon);
-            this.Controls.Add(table);
-            this.Controls.Add(lblHeader);
-        }
-
-        private void AddRow(TableLayoutPanel table, string label, Control ctrl)
-        {
-            Label lbl = new Label
-            {
-                Text = label,
-                AutoSize = true,
-                Anchor = AnchorStyles.Left,
-                Font = new Font("Segoe UI", 10)
-            };
-            ctrl.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            table.Controls.Add(lbl);
-            table.Controls.Add(ctrl);
-        }
-
-        private ComboBox CreateComboBox()
-        {
-            return new ComboBox
-            {
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Height = 32,
-                Font = new Font("Segoe UI", 10)
-            };
         }
         #endregion
 
@@ -423,7 +281,6 @@ namespace QLGD_WinForm
                         cmdUser.ExecuteNonQuery();
                     }
 
-                    // Gọi SP mượn thiết bị (không bọc trong transaction)
                     var cmd = new SqlCommand("sp_MuonThietBi", conn);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@MaDK", "PM" + DateTime.Now.ToString("yyyyMMddHHmmss"));

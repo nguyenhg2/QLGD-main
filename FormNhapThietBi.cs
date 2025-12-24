@@ -1,82 +1,30 @@
 ﻿using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace QLGD_WinForm
 {
-    public class FormNhapThietBi : Form
+    public partial class FormNhapThietBi : Form
     {
-        private TextBox txtMaTB, txtTenTB, txtGiaTri;
-        private ComboBox cboLoai, cboPhong;
-        private Button btnLuu, btnHuy;
         private string _maTB = null;
 
         public FormNhapThietBi(string maTB = null)
         {
+            InitializeComponent();
             _maTB = maTB;
-            InitializeUI();
-            LoadComboboxes();
-            if (_maTB != null) LoadDataDetail();
-        }
 
-        #region UI Setup
-        private void InitializeUI()
-        {
-            this.Text = _maTB == null ? "Thêm Thiết Bị Mới" : "Cập Nhật Thiết Bị";
-            this.Size = new Size(500, 450);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-
-            int y = 20;
-            void AddControl(string label, Control ctrl)
+            if (_maTB != null)
             {
-                Controls.Add(new Label { Text = label, Location = new Point(30, y), AutoSize = true });
-                ctrl.Location = new Point(150, y - 3);
-                ctrl.Width = 250;
-                Controls.Add(ctrl);
-                y += 50;
+                this.Text = "Cập Nhật Thiết Bị";
+                txtMaTB.ReadOnly = true;
             }
 
-            txtMaTB = new TextBox();
-            if (_maTB != null) txtMaTB.ReadOnly = true;
-            AddControl("Mã TB (*):", txtMaTB);
-
-            txtTenTB = new TextBox();
-            AddControl("Tên TB:", txtTenTB);
-
-            cboLoai = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
-            AddControl("Loại TB:", cboLoai);
-
-            cboPhong = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
-            AddControl("Vị Trí (Phòng):", cboPhong);
-
-            txtGiaTri = new TextBox();
-            AddControl("Giá Trị (VNĐ):", txtGiaTri);
-
-            btnLuu = new Button
-            {
-                Text = "Lưu",
-                Location = new Point(150, y),
-                Size = new Size(100, 35),
-                BackColor = Color.Teal,
-                ForeColor = Color.White
-            };
-            btnHuy = new Button
-            {
-                Text = "Hủy",
-                Location = new Point(270, y),
-                Size = new Size(100, 35),
-                DialogResult = DialogResult.Cancel
-            };
+            LoadComboboxes();
+            if (_maTB != null) LoadDataDetail();
 
             btnLuu.Click += BtnLuu_Click;
-
-            Controls.AddRange(new Control[] { btnLuu, btnHuy });
         }
-        #endregion
 
         #region Data Logic
         private void LoadComboboxes()

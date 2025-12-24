@@ -6,79 +6,20 @@ using System.Windows.Forms;
 
 namespace QLGD_WinForm
 {
-    public class FormDanhSachQuaHan : Form
+    public partial class FormDanhSachQuaHan : Form
     {
-        private DataGridView dgvList;
-        private Button btnRefresh;
-        private Button btnClose;
-
         public FormDanhSachQuaHan()
         {
-            InitializeUI();
+            InitializeComponent();
+            SetupEvents();
             LoadData();
         }
 
-        #region UI Setup
-        private void InitializeUI()
+        #region Events Setup
+        private void SetupEvents()
         {
-            this.Text = "DANH SÁCH QUÁ HẠN (TÍNH THEO GIỜ)";
-            this.Size = new Size(1100, 600);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.BackColor = Color.WhiteSmoke;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-
-            Label lblHeader = new Label
-            {
-                Text = "THIẾT BỊ QUÁ HẠN CHƯA TRẢ",
-                Dock = DockStyle.Top,
-                Height = 60,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                ForeColor = Color.Firebrick,
-                BackColor = Color.MistyRose
-            };
-
-            Panel pnlBody = new Panel { Dock = DockStyle.Fill, Padding = new Padding(10) };
-            dgvList = new DataGridView
-            {
-                Dock = DockStyle.Fill,
-                BackgroundColor = Color.White,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                AllowUserToAddRows = false,
-                ReadOnly = true,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                RowTemplate = { Height = 35 }
-            };
-            pnlBody.Controls.Add(dgvList);
-
-            Panel pnlFooter = new Panel { Dock = DockStyle.Bottom, Height = 60, BackColor = Color.White };
-
-            btnRefresh = new Button
-            {
-                Text = "Làm Mới",
-                Location = new Point(840, 12),
-                Size = new Size(100, 35),
-                BackColor = Color.Teal,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
             btnRefresh.Click += (s, e) => LoadData();
-
-            btnClose = new Button
-            {
-                Text = "Đóng",
-                Location = new Point(950, 12),
-                Size = new Size(100, 35)
-            };
             btnClose.Click += (s, e) => this.Close();
-
-            pnlFooter.Controls.Add(btnRefresh);
-            pnlFooter.Controls.Add(btnClose);
-
-            this.Controls.Add(pnlBody);
-            this.Controls.Add(pnlFooter);
-            this.Controls.Add(lblHeader);
         }
         #endregion
 
@@ -157,7 +98,6 @@ namespace QLGD_WinForm
             }
             catch { }
         }
-
         #endregion
     }
 }

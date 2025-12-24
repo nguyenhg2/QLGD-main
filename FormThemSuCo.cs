@@ -6,228 +6,21 @@ using System.Windows.Forms;
 
 namespace QLGD_WinForm
 {
-    public class FormThemSuCo : Form
+    public partial class FormThemSuCo : Form
     {
-        private TextBox txtMaTB;
-        private Button btnLoadTB;
-        private ComboBox cboThietBi;
-        private ComboBox cboLoaiSuKien;
-        private DateTimePicker dtpNgay;
-        private TextBox txtMoTa;
-        private TextBox txtNguoiBao;
-        private Button btnLuu;
-        private Button btnHuy;
-        private Label lblCanhBao;
-        private Label lblThongTinTB;
-
         public FormThemSuCo()
         {
-            InitializeUI();
-        }
-
-        #region UI Setup
-        private void InitializeUI()
-        {
-            this.Text = "KHAI BÁO SỰ CỐ / BẢO TRÌ";
-            this.Size = new Size(700, 580);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.BackColor = Color.White;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-
-            Panel pnlHeader = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 60,
-                BackColor = Color.Firebrick
-            };
-            Label lblHeader = new Label
-            {
-                Text = "THÔNG TIN SỰ CỐ",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                ForeColor = Color.White
-            };
-            pnlHeader.Controls.Add(lblHeader);
-
-            Panel pnlBody = new Panel
-            {
-                Dock = DockStyle.Fill,
-                Padding = new Padding(30, 20, 30, 20),
-                AutoScroll = true
-            };
-
-            int y = 10;
-            int labelWidth = 150;
-            int controlWidth = 450;
-
-            AddLabel(pnlBody, "Chọn Thiết Bị (*):", y);
-            txtMaTB = new TextBox
-            {
-                Location = new Point(labelWidth, y),
-                Width = 200,
-                Font = new Font("Segoe UI", 10),
-                PlaceholderText = "Nhập mã TB..."
-            };
-            btnLoadTB = new Button
-            {
-                Text = "Tải TB",
-                Location = new Point(labelWidth + 210, y - 2),
-                Size = new Size(80, 28),
-                BackColor = Color.Teal,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold)
-            };
-            btnLoadTB.FlatAppearance.BorderSize = 0;
-            btnLoadTB.Click += BtnLoadTB_Click;
-
-            pnlBody.Controls.Add(txtMaTB);
-            pnlBody.Controls.Add(btnLoadTB);
-            y += 35;
-
-            cboThietBi = new ComboBox
-            {
-                Location = new Point(labelWidth, y),
-                Width = controlWidth,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Segoe UI", 10),
-                Enabled = false
-            };
-            cboThietBi.SelectedIndexChanged += CboThietBi_SelectedIndexChanged;
-            pnlBody.Controls.Add(cboThietBi);
-            y += 40;
-
-            lblCanhBao = new Label
-            {
-                Location = new Point(labelWidth, y),
-                Width = controlWidth,
-                Height = 50,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                ForeColor = Color.Red,
-                Text = "",
-                Visible = false,
-                AutoSize = false
-            };
-            pnlBody.Controls.Add(lblCanhBao);
-            y += 55;
-
-            lblThongTinTB = new Label
-            {
-                Location = new Point(labelWidth, y),
-                Width = controlWidth,
-                Height = 40,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.DarkBlue,
-                Text = "",
-                Visible = false,
-                AutoSize = false
-            };
-            pnlBody.Controls.Add(lblThongTinTB);
-            y += 45;
-
-            AddLabel(pnlBody, "Loại Sự Kiện:", y);
-            cboLoaiSuKien = new ComboBox
-            {
-                Location = new Point(labelWidth, y),
-                Width = controlWidth,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Segoe UI", 10)
-            };
-            cboLoaiSuKien.Items.AddRange(new object[] { "Sự cố", "Bảo trì định kỳ", "Bảo trì đột xuất" });
+            InitializeComponent();
+            SetupEvents();
             cboLoaiSuKien.SelectedIndex = 0;
-            pnlBody.Controls.Add(cboLoaiSuKien);
-            y += 40;
-
-            AddLabel(pnlBody, "Thời Gian:", y);
-            dtpNgay = new DateTimePicker
-            {
-                Location = new Point(labelWidth, y),
-                Width = 250,
-                Format = DateTimePickerFormat.Custom,
-                CustomFormat = "dd/MM/yyyy HH:mm",
-                Font = new Font("Segoe UI", 10)
-            };
-            pnlBody.Controls.Add(dtpNgay);
-            y += 40;
-
-            AddLabel(pnlBody, "Người Báo/Xử Lý:", y);
-            txtNguoiBao = new TextBox
-            {
-                Location = new Point(labelWidth, y),
-                Width = controlWidth,
-                Font = new Font("Segoe UI", 10)
-            };
-            pnlBody.Controls.Add(txtNguoiBao);
-            y += 40;
-
-            AddLabel(pnlBody, "Mô Tả Chi Tiết:", y);
-            txtMoTa = new TextBox
-            {
-                Location = new Point(labelWidth, y),
-                Width = controlWidth,
-                Height = 80,
-                Multiline = true,
-                ScrollBars = ScrollBars.Vertical,
-                Font = new Font("Segoe UI", 10)
-            };
-            pnlBody.Controls.Add(txtMoTa);
-
-            Panel pnlFooter = new Panel
-            {
-                Dock = DockStyle.Bottom,
-                Height = 70,
-                BackColor = Color.WhiteSmoke
-            };
-
-            btnLuu = new Button
-            {
-                Text = "LƯU SỰ CỐ",
-                Location = new Point(430, 18),
-                Size = new Size(120, 38),
-                BackColor = Color.Firebrick,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Enabled = false
-            };
-            btnLuu.FlatAppearance.BorderSize = 0;
-            btnLuu.Click += BtnLuu_Click;
-
-            btnHuy = new Button
-            {
-                Text = "Hủy",
-                Location = new Point(560, 18),
-                Size = new Size(90, 38),
-                BackColor = Color.Gray,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 10),
-                DialogResult = DialogResult.Cancel
-            };
-            btnHuy.FlatAppearance.BorderSize = 0;
-
-            pnlFooter.Controls.Add(btnLuu);
-            pnlFooter.Controls.Add(btnHuy);
-
-            this.Controls.Add(pnlBody);
-            this.Controls.Add(pnlFooter);
-            this.Controls.Add(pnlHeader);
         }
 
-        private void AddLabel(Panel parent, string text, int y)
+        #region Events Setup
+        private void SetupEvents()
         {
-            Label lbl = new Label
-            {
-                Text = text,
-                Location = new Point(10, y + 3),
-                Width = 140,
-                Font = new Font("Segoe UI", 10),
-                TextAlign = ContentAlignment.MiddleLeft
-            };
-            parent.Controls.Add(lbl);
+            btnLoadTB.Click += BtnLoadTB_Click;
+            cboThietBi.SelectedIndexChanged += CboThietBi_SelectedIndexChanged;
+            btnLuu.Click += BtnLuu_Click;
         }
         #endregion
 
@@ -277,9 +70,7 @@ namespace QLGD_WinForm
                     cboThietBi.Enabled = true;
 
                     if (dt.Rows.Count == 1)
-                    {
                         cboThietBi.SelectedIndex = 0;
-                    }
                 }
             }
             catch (Exception ex)
@@ -340,11 +131,11 @@ namespace QLGD_WinForm
                 {
                     conn.Open();
 
+                    // Kiểm tra sự cố chưa xử lý
                     string sqlCheck = @"
                         SELECT TOP 1 MaSuKien, NgayPhatSinh, TrangThai
                         FROM SU_CO_BAO_TRI
-                        WHERE MaTB = @MaTB 
-                          AND TrangThai IN (0, 1)
+                        WHERE MaTB = @MaTB AND TrangThai IN (0, 1)
                         ORDER BY NgayPhatSinh DESC";
 
                     var cmdCheck = new SqlCommand(sqlCheck, conn);
@@ -370,6 +161,7 @@ namespace QLGD_WinForm
                         }
                     }
 
+                    // Lấy thông tin thiết bị
                     string sqlInfo = @"
                         SELECT tb.TenTB, tb.TrangThai, ltb.TenLoai, tb.MaGD, tb.MaPhong
                         FROM THIET_BI tb

@@ -6,58 +6,20 @@ using System.Windows.Forms;
 
 namespace QLGD_WinForm
 {
-    public class FormGiangDuong : BaseManagementForm
+    public partial class FormGiangDuong : BaseManagementForm
     {
-        private TextBox txtTim;
-
-        public FormGiangDuong() : base("Thống Kê Thiết Bị Theo Giảng Đường", "GiangDuong", new Size(1200, 650))
+        public FormGiangDuong()
         {
-            InitializeCustomToolbar();
+            InitializeComponent();
+            SetupEvents();
             LoadData();
         }
 
-        #region UI Setup
-        private void InitializeCustomToolbar()
+        #region Events Setup
+        private void SetupEvents()
         {
-            txtTim = new TextBox
-            {
-                Width = 200,
-                PlaceholderText = "Tìm giảng đường...",
-                Font = new Font("Segoe UI", 10)
-            };
-
-            var btnSearch = new Button
-            {
-                Text = "Tìm",
-                Size = new Size(100, 32),
-                BackColor = Color.SteelBlue,
-                ForeColor = Color.White
-            };
-
-            var btnRefresh = new Button
-            {
-                Text = "Làm mới",
-                Size = new Size(110, 32)
-            };
-
             btnSearch.Click += (s, e) => LoadData(txtTim.Text);
             btnRefresh.Click += (s, e) => { txtTim.Clear(); LoadData(); };
-
-            pnlTop.Controls.Clear();
-
-            Label lbl = new Label
-            {
-                Text = "Tìm kiếm:",
-                Location = new Point(20, 22),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 10)
-            };
-
-            txtTim.Location = new Point(100, 18);
-            btnSearch.Location = new Point(310, 16);
-            btnRefresh.Location = new Point(420, 16);
-
-            pnlTop.Controls.AddRange(new Control[] { lbl, txtTim, btnSearch, btnRefresh });
         }
         #endregion
 

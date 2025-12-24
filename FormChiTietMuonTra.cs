@@ -5,90 +5,19 @@ using System.Windows.Forms;
 
 namespace QLGD_WinForm
 {
-    public class FormChiTietMuonTra : Form
+    public partial class FormChiTietMuonTra : Form
     {
         private string _maDK;
 
         public FormChiTietMuonTra(string maDK)
         {
+            InitializeComponent();
             _maDK = maDK;
-            InitializeUI();
+            this.Text = "Chi Tiết Phiếu Mượn: " + _maDK;
+
+            btnClose.Click += (s, e) => this.Close();
             LoadDetail();
         }
-
-        #region UI Setup
-        private void InitializeUI()
-        {
-            this.Text = "Chi Tiết Phiếu Mượn: " + _maDK;
-            this.Size = new Size(650, 550);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.BackColor = Color.White;
-
-            Label lblHeader = new Label
-            {
-                Text = "THÔNG TIN CHI TIẾT PHIẾU MƯỢN",
-                Dock = DockStyle.Top,
-                Height = 60,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                ForeColor = Color.Teal
-            };
-            this.Controls.Add(lblHeader);
-
-            TableLayoutPanel table = new TableLayoutPanel
-            {
-                Dock = DockStyle.Top,
-                Height = 400,
-                ColumnCount = 2,
-                Padding = new Padding(40, 10, 40, 0),
-                RowCount = 9
-            };
-
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45F));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55F));
-
-            AddRow(table, "Mã Phiếu Mượn:", "lblMaDK");
-            AddRow(table, "Họ Tên Người Mượn:", "lblNguoiMuon");
-            AddRow(table, "Đơn Vị / Lớp:", "lblDonVi");
-            AddRow(table, "Tên Thiết Bị:", "lblThietBi");
-            AddRow(table, "Thời Gian Mượn:", "lblNgayMuon");
-            AddRow(table, "Thời Gian Trả Dự Kiến:", "lblTraDuKien", Color.DarkBlue);
-            AddRow(table, "Thời Gian Trả Thực Tế:", "lblTraThucTe", Color.DarkRed);
-            AddRow(table, "Trạng Thái Phiếu:", "lblTrangThai");
-            AddRow(table, "Ghi Chú:", "lblGhiChu");
-
-            this.Controls.Add(table);
-
-            Button btnClose = new Button { Text = "Đóng", Size = new Size(120, 40), Location = new Point(260, 460) };
-            btnClose.Click += (s, e) => this.Close();
-            this.Controls.Add(btnClose);
-        }
-
-        private void AddRow(TableLayoutPanel panel, string title, string name, Color? color = null)
-        {
-            Label lbl = new Label
-            {
-                Text = title,
-                AutoSize = true,
-                Font = new Font("Segoe UI", 11, FontStyle.Bold),
-                Anchor = AnchorStyles.Left
-            };
-
-            Label val = new Label
-            {
-                Name = name,
-                Text = "...",
-                AutoSize = true,
-                Font = new Font("Segoe UI", 11),
-                Anchor = AnchorStyles.Left
-            };
-
-            if (color.HasValue) val.ForeColor = color.Value;
-
-            panel.Controls.Add(lbl);
-            panel.Controls.Add(val);
-        }
-        #endregion
 
         #region Data Logic
         private void LoadDetail()
@@ -116,36 +45,28 @@ namespace QLGD_WinForm
                     {
                         string fmt = "dd/MM/yyyy HH:mm";
 
-                        SetText("lblMaDK", dr["MaDK"].ToString());
-                        SetText("lblNguoiMuon", dr["HoTen"].ToString());
-                        SetText("lblDonVi", dr["DonVi"].ToString());
-                        SetText("lblThietBi", dr["TenTB"].ToString());
-                        SetText("lblNgayMuon", Convert.ToDateTime(dr["TGMuon"]).ToString(fmt));
+                        lblMaDK.Text = dr["MaDK"].ToString();
+                        lblNguoiMuon.Text = dr["HoTen"].ToString();
+                        lblDonVi.Text = dr["DonVi"].ToString();
+                        lblThietBi.Text = dr["TenTB"].ToString();
+                        lblNgayMuon.Text = Convert.ToDateTime(dr["TGMuon"]).ToString(fmt);
 
                         if (dr["TGTraDuKien"] != DBNull.Value)
-                            SetText("lblTraDuKien", Convert.ToDateTime(dr["TGTraDuKien"]).ToString(fmt));
+                            lblTraDuKien.Text = Convert.ToDateTime(dr["TGTraDuKien"]).ToString(fmt);
                         else
-                            SetText("lblTraDuKien", "Chưa xác định");
+                            lblTraDuKien.Text = "Chưa xác định";
 
                         if (dr["TGTra"] != DBNull.Value)
-                            SetText("lblTraThucTe", Convert.ToDateTime(dr["TGTra"]).ToString(fmt));
+                            lblTraThucTe.Text = Convert.ToDateTime(dr["TGTra"]).ToString(fmt);
                         else
-                            SetText("lblTraThucTe", "Chưa trả");
+                            lblTraThucTe.Text = "Chưa trả";
 
-                        SetText("lblGhiChu", dr["GhiChu"].ToString());
-
-                        var lblStt = this.Controls.Find("lblTrangThai", true)[0];
-                        lblStt.Text = dr["TrangThai"].ToString();
-                        lblStt.ForeColor = lblStt.Text == "QUÁ HẠN" ? Color.Red : Color.Green;
+                        lblGhiChu.Text = dr["GhiChu"].ToString();
+                        lblTrangThai.Text = dr["TrangThai"].ToString();
+                        lblTrangThai.ForeColor = lblTrangThai.Text == "QUÁ HẠN" ? Color.Red : Color.Green;
                     }
                 }
             }
-        }
-
-        private void SetText(string key, string value)
-        {
-            var c = this.Controls.Find(key, true);
-            if (c.Length > 0) c[0].Text = value;
         }
         #endregion
     }
